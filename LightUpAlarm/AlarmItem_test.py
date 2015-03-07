@@ -36,7 +36,7 @@ class AlarmItemTestCase(unittest.TestCase):
         alarm_test = AlarmItem(hour, minute, days, False)
         self.assertEqual(False, alarm_test.active)
 
-    def test_constructor_loop_around(self):
+    def test_constructor_hour_min_loop_around(self):
         """
         Test constructor values for hours and minutes larger than 23 and 59
         respectively.
@@ -67,6 +67,45 @@ class AlarmItemTestCase(unittest.TestCase):
         alarm_test.hour = 87     # 15 + 24h + 24h + 24h
         self.assertTrue(alarm_test.minute == 32)
         self.assertTrue(alarm_test.hour < 24)
+
+    def test_hour_min_integers(self):
+        """
+        Test setting the hours and minutes values to non-integer values.
+        """
+        alarm_test = AlarmItem(0, 0)
+
+        # The accessor functions print to stderr if bad data is encountered, so
+        # we need to capture stderr to test it.
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # First ensure that successful set does not write to stderr
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.hour = 12
+            alarm_test.minute = 34
+            self.assertEqual(test_srderr.getvalue(), '')
+
+            # Float instead of integer
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.hour = 12.34
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.minute = 34.56
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # String instead of integer
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.hour = 'minutes'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.minute = 'hours'
+            self.assertNotEqual(test_srderr.getvalue(), '')
 
     def test_repeat_list_strictness(self):
         """

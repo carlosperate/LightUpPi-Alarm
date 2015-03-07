@@ -64,7 +64,7 @@ class AlarmItem(object):
 
     def set_active(self, new_active):
         """
-        Wraps around input value to be within 0 and 23.
+        Ensure new value is a boolean before setting the active state.
         :param new_active: new active state for the alarm instance.
         """
         if isinstance(new_active, types.BooleanType):
@@ -83,12 +83,16 @@ class AlarmItem(object):
 
     def set_minute(self, new_minute):
         """
-        Wraps around input value to be within 0 and 59.
+        Checks input is an integer and wraps around value to be between 0 - 59.
         :param new_minute: new alarm minutes for the alarm instance.
         """
-        while new_minute >= 60:
-            new_minute %= 60
-        self._minute = new_minute
+        if isinstance(new_minute, types.IntType):
+            while new_minute >= 60:
+                new_minute %= 60
+            self._minute = new_minute
+        else:
+            print('ERROR: Provided AlarmItem().minute type is not an Integer' +
+                  ': %s!' % new_minute, file=sys.stderr)
 
     minute = property(get_minute, set_minute)
 
@@ -100,12 +104,16 @@ class AlarmItem(object):
 
     def set_hour(self, new_hour):
         """
-        Wraps around input value to be within 0 and 23.
+        Checks input is an integer and wraps around value to be between 0 - 23.
         :param new_hour: new alarm hours for the alarm instance.
         """
-        while new_hour >= 24:
-            new_hour %= 24
-        self._hour = new_hour
+        if isinstance(new_hour, types.IntType):
+            while new_hour >= 24:
+                new_hour %= 24
+            self._hour = new_hour
+        else:
+            print('ERROR: Provided AlarmItem().hour type is not an Integer' +
+                  ': %s!' % new_hour, file=sys.stderr)
 
     hour = property(get_hour, set_hour)
 
@@ -143,6 +151,9 @@ class AlarmItem(object):
 
     repeat = property(get_repeat, set_repeat)
 
+    #
+    # constructor
+    #
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
                  active=True, alarm_id=None):
@@ -155,3 +166,7 @@ class AlarmItem(object):
         self.active = active
         if alarm_id is not None:
             self.id = alarm_id
+
+    #
+    # member methods
+    #
