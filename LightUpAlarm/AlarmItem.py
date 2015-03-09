@@ -7,8 +7,7 @@
 #
 # Full description goes here
 #
-from __future__ import unicode_literals, absolute_import
-from __future__ import print_function
+from __future__ import unicode_literals, absolute_import, print_function
 from __builtin__ import property
 import types
 import sys
@@ -18,30 +17,45 @@ class AlarmItem(object):
     """
     .
     """
-    # ID is only created at first save into db
-    _id = None
+    #
+    # constructor
+    #
+    def __init__(self, hour, minute,
+                 days=(False, False, False, False, False, False, False),
+                 active=True, alarm_id=None):
+        """
+        Constructor assigns the input data into the new alarm instance.
+        First creates the private variables, then assigns values
+        """
+        # ID is only created at first save into db
+        self.__id = None
+        # Indicates if the alarm is active or not
+        self.__active = False
+        # Contains the days of the weeks that this alarm repeats
+        self.__repeat = {'Monday': False,
+                         'Tuesday': False,
+                         'Wednesday': False,
+                         'Thursday': False,
+                         'Friday': False,
+                         'Saturday': False,
+                         'Sunday': False}
+        # Alarm time
+        self.__minute = 0
+        self.__hour = 0
 
-    # Indicates if the alarm is active or not
-    _active = False
-
-    # Contains the days of the weeks that this alarm repeats
-    _repeat = {'Monday': False,
-               'Tuesday': False,
-               'Wednesday': False,
-               'Thursday': False,
-               'Friday': False,
-               'Saturday': False,
-               'Sunday': False}
-
-    # Alarm time
-    _minute = 0
-    _hour = 0
+        # Assigning values using accessors
+        self.hour = hour
+        self.minute = minute
+        self.repeat = days
+        self.active = active
+        if alarm_id is not None:
+            self.id = alarm_id
 
     #
     # id accesor
     #
     def get_id(self):
-        return self._id
+        return self.__id
 
     def set_id(self, new_id):
         """
@@ -49,7 +63,7 @@ class AlarmItem(object):
         :param new_id: new ID for the alarm instance.
         """
         if isinstance(new_id, types.IntType):
-            self._id = new_id
+            self.__id = new_id
         else:
             print('ERROR: Provided AlarmItem().id type is not an Integer' +
                   ': %s!' % new_id, file=sys.stderr)
@@ -60,7 +74,7 @@ class AlarmItem(object):
     # active accesor
     #
     def get_active(self):
-        return self._active
+        return self.__active
 
     def set_active(self, new_active):
         """
@@ -68,7 +82,7 @@ class AlarmItem(object):
         :param new_active: new active state for the alarm instance.
         """
         if isinstance(new_active, types.BooleanType):
-            self._active = new_active
+            self.__active = new_active
         else:
             print('ERROR: Provided AlarmItem().active type is not a boolean' +
                   ': %s!' % new_active, file=sys.stderr)
@@ -79,7 +93,7 @@ class AlarmItem(object):
     # minute accesor
     #
     def get_minute(self):
-        return self._minute
+        return self.__minute
 
     def set_minute(self, new_minute):
         """
@@ -89,7 +103,7 @@ class AlarmItem(object):
         if isinstance(new_minute, types.IntType):
             while new_minute >= 60:
                 new_minute %= 60
-            self._minute = new_minute
+            self.__minute = new_minute
         else:
             print('ERROR: Provided AlarmItem().minute type is not an Integer' +
                   ': %s!' % new_minute, file=sys.stderr)
@@ -100,7 +114,7 @@ class AlarmItem(object):
     # hour accesor
     #
     def get_hour(self):
-        return self._hour
+        return self.__hour
 
     def set_hour(self, new_hour):
         """
@@ -110,7 +124,7 @@ class AlarmItem(object):
         if isinstance(new_hour, types.IntType):
             while new_hour >= 24:
                 new_hour %= 24
-            self._hour = new_hour
+            self.__hour = new_hour
         else:
             print('ERROR: Provided AlarmItem().hour type is not an Integer' +
                   ': %s!' % new_hour, file=sys.stderr)
@@ -125,10 +139,11 @@ class AlarmItem(object):
         Returns the days of the week alarm repetition in the form of a tuple.
         :return: Tuple with 7 booleans to indicate repetition for the weekdays.
         """
-        repeat_return = []
-        for day in self._repeat:
-            repeat_return.append(self._repeat[day])
-        return tuple(repeat_return)
+        repeat_tuple = (self.__repeat['Monday'], self.__repeat['Tuesday'],
+                        self.__repeat['Wednesday'], self.__repeat['Thursday'],
+                        self.__repeat['Friday'], self.__repeat['Saturday'],
+                        self.__repeat['Sunday'])
+        return repeat_tuple
 
     def set_repeat(self, new_repeat):
         """
@@ -144,28 +159,102 @@ class AlarmItem(object):
                           'have to be Booleans!', file=sys.stderr)
                     break
             else:
-                self._repeat = new_repeat
+                self.__repeat['Monday'] = new_repeat[0]
+                self.__repeat['Tuesday'] = new_repeat[1]
+                self.__repeat['Wednesday'] = new_repeat[2]
+                self.__repeat['Thursday'] = new_repeat[3]
+                self.__repeat['Friday'] = new_repeat[4]
+                self.__repeat['Saturday'] = new_repeat[5]
+                self.__repeat['Sunday'] = new_repeat[6]
         else:
             print('ERROR: The AlarmItem().repeat must be a list of 7 booleans!',
                   file=sys.stderr)
 
     repeat = property(get_repeat, set_repeat)
 
-    #
-    # constructor
-    #
-    def __init__(self, hour, minute,
-                 days=(False, False, False, False, False, False, False),
-                 active=True, alarm_id=None):
-        """
-        Constructor assigns the input data into the new alarm instance.
-        """
-        self.hour = hour
-        self.minute = minute
-        self.repeat = days
-        self.active = active
-        if alarm_id is not None:
-            self.id = alarm_id
+    def get_monday(self):
+        return self.__repeat['Monday']
+
+    def set_monday(self, new_monday):
+        if isinstance(new_monday, types.BooleanType):
+            self.__repeat['Monday'] = new_monday
+        else:
+            print('ERROR: New value for the AlarmItem().monday variable has ' +
+                  'to be a Boolean !', file=sys.stderr)
+
+    monday = property(get_monday, set_monday)
+
+    def get_tuesday(self):
+        return self.__repeat['Tuesday']
+
+    def set_tuesday(self, new_tuesday):
+        if isinstance(new_tuesday, types.BooleanType):
+            self.__repeat['Tuesday'] = new_tuesday
+        else:
+            print('ERROR: New value for the AlarmItem().tuesday variable has ' +
+                  'to be a Boolean !', file=sys.stderr)
+
+    tuesday = property(get_tuesday, set_tuesday)
+
+    def get_wednesday(self):
+        return self.__repeat['Wednesday']
+
+    def set_wednesday(self, new_wednesday):
+        if isinstance(new_wednesday, types.BooleanType):
+            self.__repeat['Wednesday'] = new_wednesday
+        else:
+            print('ERROR: New value for the AlarmItem().wednesday variable ' +
+                  'has to be a Boolean !', file=sys.stderr)
+
+    wednesday = property(get_wednesday,set_wednesday)
+
+    def get_thursday(self):
+        return self.__repeat['Thursday']
+
+    def set_thursday(self, new_thursday):
+        if isinstance(new_thursday, types.BooleanType):
+            self.__repeat['Thursday'] = new_thursday
+        else:
+            print('ERROR: New value for the AlarmItem().thursday variable ' +
+                  'has to be a Boolean !', file=sys.stderr)
+
+    thursday = property(get_thursday, set_thursday)
+
+    def get_friday(self):
+        return self.__repeat['Friday']
+
+    def set_friday(self, new_friday):
+        if isinstance(new_friday, types.BooleanType):
+            self.__repeat['Friday'] = new_friday
+        else:
+            print('ERROR: New value for the AlarmItem().friday variable has ' +
+                  'to be a Boolean !', file=sys.stderr)
+
+    friday = property(get_friday, set_friday)
+
+    def get_saturday(self):
+        return self.__repeat['Saturday']
+
+    def set_saturday(self, new_saturday):
+        if isinstance(new_saturday, types.BooleanType):
+            self.__repeat['Saturday'] = new_saturday
+        else:
+            print('ERROR: New value for the AlarmItem().saturday variable ' +
+                  'has to be a Boolean !', file=sys.stderr)
+
+    saturday = property(get_saturday, set_saturday)
+
+    def get_sunday(self):
+        return self.__repeat['Sunday']
+
+    def set_sunday(self, new_sunday):
+        if isinstance(new_sunday, types.BooleanType):
+            self.__repeat['Sunday'] = new_sunday
+        else:
+            print('ERROR: New value for the AlarmItem().sunday variable ' +
+                  'has to be a Boolean !', file=sys.stderr)
+
+    sunday = property(get_sunday, set_sunday)
 
     #
     # member methods

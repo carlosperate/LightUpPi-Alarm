@@ -25,8 +25,8 @@ class AlarmItemTestCase(unittest.TestCase):
         alarm_test = AlarmItem(hour, minute)
         self.assertEqual(hour, alarm_test.hour)
         self.assertEqual(minute, alarm_test.minute)
-        for day in alarm_test._repeat:
-            self.assertEqual(alarm_test._repeat[day], False)
+        for day in alarm_test.repeat:
+            self.assertEqual(alarm_test.repeat[day], False)
 
         # Check constructor with minimum arguments + repeat days
         alarm_test = AlarmItem(hour, minute, days)
@@ -148,8 +148,169 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.repeat = (False, True, True, 0, False, False, True)
             self.assertNotEqual(test_srderr.getvalue(), '')
 
+    def test_repeat_accessors_get(self):
+        """
+        Sets the repeat list at the constructor and variable level, and test
+        that all the individual accessors for each day of the week works
+        correctly.
+        """
+        days = [False, True, True, False, True, False, True]
+
+        # Test constructor input
+        alarm_test = AlarmItem(0, 0, days, False)
+        self.assertEqual(alarm_test.repeat, tuple(days))
+        self.assertEqual(alarm_test.monday, days[0])
+        self.assertEqual(alarm_test.tuesday, days[1])
+        self.assertEqual(alarm_test.wednesday, days[2])
+        self.assertEqual(alarm_test.thursday, days[3])
+        self.assertEqual(alarm_test.friday, days[4])
+        self.assertEqual(alarm_test.saturday, days[5])
+        self.assertEqual(alarm_test.sunday, days[6])
+
+        # Test repeat accesor with opposite repeat list
+        for i in xrange(len(days)):
+            days[i] = not days[i]
+        alarm_test.repeat = days
+        self.assertEqual(alarm_test.repeat, tuple(days))
+        self.assertEqual(alarm_test.monday, days[0])
+        self.assertEqual(alarm_test.tuesday, days[1])
+        self.assertEqual(alarm_test.wednesday, days[2])
+        self.assertEqual(alarm_test.thursday, days[3])
+        self.assertEqual(alarm_test.friday, days[4])
+        self.assertEqual(alarm_test.saturday, days[5])
+        self.assertEqual(alarm_test.sunday, days[6])
+
+    def test_repeat_accessors_set(self):
+        """
+        Sets the repeat list and test that the individual set accessors work as
+        expected, including throwing errors if values are not booleans.
+        """
+        alarm_test = AlarmItem(0, 0)
+        days = [False, True, True, False, True, False, True]
+
+        # Test with correct values
+        alarm_test.monday = days[0]
+        alarm_test.tuesday = days[1]
+        alarm_test.wednesday = days[2]
+        alarm_test.thursday = days[3]
+        alarm_test.friday = days[4]
+        alarm_test.saturday = days[5]
+        alarm_test.sunday = days[6]
+        self.assertEqual(alarm_test.monday, days[0])
+        self.assertEqual(alarm_test.tuesday, days[1])
+        self.assertEqual(alarm_test.wednesday, days[2])
+        self.assertEqual(alarm_test.thursday, days[3])
+        self.assertEqual(alarm_test.friday, days[4])
+        self.assertEqual(alarm_test.saturday, days[5])
+        self.assertEqual(alarm_test.sunday, days[6])
+
+        # To test the incorrect value, the accessor setter prints to stderr
+        # if bad data is encountered, so we need to capture stderr to test it.
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # First ensure that successful set does not write to stderr
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.monday = days[0]
+            self.assertEqual(test_srderr.getvalue(), '')
+
+            # Monday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.monday = 'monday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.monday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.monday = 2.3
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Tuesday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.tuesday = 'tuesday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.tuesday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.tuesday = 2.3
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Wednesday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.wednesday = 'wednesday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.wednesday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.wednesday = 2.3
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Thursday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.thursday = 'thursday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.thursday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.thursday = 2.3
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Friday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.friday = 'friday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.friday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.friday = 2.3
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Saturday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.saturday = 'saturday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.saturday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.saturday = 2.3
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Sunday
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.sunday = 'sunday'
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.sunday = 1
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.sunday = 2.3
+
     def test_id(self):
-        """ Test that the id member variable accessors work as expected. """
+        """ Tests the id member variable accessors filters non-integers. """
         alarm_test = AlarmItem(0, 0)
         alarm_test.id = 5
         self.assertEqual(5, alarm_test.id)
@@ -161,11 +322,9 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.id = 10
             self.assertEqual(test_srderr.getvalue(), '')
-
             # String instead of integer
             alarm_test.id = 'String'
             self.assertNotEqual(test_srderr.getvalue(), '')
-
             # Float instead of integer
             test_srderr.truncate(0)
             test_srderr.write('')
