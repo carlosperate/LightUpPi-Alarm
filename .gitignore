@@ -80,4 +80,8 @@ target/
 ####################
 # Project specific #
 ####################
-#
+# Alarm database
+alarmdatabase.db
+
+# Unit test database
+AlarmDbHelper_test_db.db
