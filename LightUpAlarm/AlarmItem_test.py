@@ -332,6 +332,39 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.id = 10.4
             self.assertNotEqual(test_srderr.getvalue(), '')
 
+    def test_time_to_alarm(self):
+        """
+        Full tests coverage for the get_time_diff function. Good resource:
+        http://www.timeanddate.com/date/timeduration.html
+        """
+        one_day = 1440
+        test_alarm = AlarmItem(
+            9, 30, (True, False, False, True, False, False, False), True)
+        time_diff = test_alarm.minutes_to_alert(9, 30, 0)
+        self.assertEqual(time_diff, 0)
+        time_diff = test_alarm.minutes_to_alert(9, 29, 0)
+        self.assertEqual(time_diff, 1)
+        time_diff = test_alarm.minutes_to_alert(19, 55, 2)
+        self.assertEqual(time_diff, 815)
+        time_diff = test_alarm.minutes_to_alert(9, 30, 2)
+        self.assertEqual(time_diff, one_day)
+        time_diff = test_alarm.minutes_to_alert(9, 30, 1)
+        self.assertEqual(time_diff, (one_day * 2))
+        time_diff = test_alarm.minutes_to_alert(9, 31, 1)
+        self.assertEqual(time_diff, ((one_day * 2) - 1))
+        time_diff = test_alarm.minutes_to_alert(9, 29, 4)
+        self.assertEqual(time_diff, ((one_day * 3) + 1))
+        time_diff = test_alarm.minutes_to_alert(3, 15, 1)
+        self.assertEqual(time_diff, ((one_day * 2) + (60 * 6) + 15))
+
+        test_alarm.repeat = (True, False, False, False, False, False, False)
+        time_diff = test_alarm.minutes_to_alert(9, 31, 0)
+        self.assertEqual(time_diff, ((one_day * 7) - 1))
+        time_diff = test_alarm.minutes_to_alert(13, 34, 1)
+        self.assertEqual(time_diff, ((one_day * 5) + (60 * 19) + 56))
+        time_diff = test_alarm.minutes_to_alert(4, 15, 2)
+        self.assertEqual(time_diff, ((one_day * 5) + (60 * 5) + 15))
+
 
 if __name__ == '__main__':
     unittest.main()

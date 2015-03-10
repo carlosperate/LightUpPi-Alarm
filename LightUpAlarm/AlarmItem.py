@@ -31,17 +31,13 @@ class AlarmItem(object):
         self.__id = None
         # Indicates if the alarm is active or not
         self.__active = False
-        # Contains the days of the weeks that this alarm repeats
-        self.__repeat = {'Monday': False,
-                         'Tuesday': False,
-                         'Wednesday': False,
-                         'Thursday': False,
-                         'Friday': False,
-                         'Saturday': False,
-                         'Sunday': False}
         # Alarm time
         self.__minute = 0
         self.__hour = 0
+        # Contains the days of the weeks that this alarm repeats
+        self.__repeat = {'Monday': False, 'Tuesday': False, 'Wednesday': False,
+                         'Thursday': False, 'Friday': False, 'Saturday': False,
+                         'Sunday': False}
 
         # Assigning values using accessors
         self.hour = hour
@@ -54,10 +50,10 @@ class AlarmItem(object):
     #
     # id accesor
     #
-    def get_id(self):
+    def __get_id(self):
         return self.__id
 
-    def set_id(self, new_id):
+    def __set_id(self, new_id):
         """
         Sets id value. Must be an integer.
         :param new_id: new ID for the alarm instance.
@@ -68,15 +64,15 @@ class AlarmItem(object):
             print('ERROR: Provided AlarmItem().id type is not an Integer' +
                   ': %s!' % new_id, file=sys.stderr)
 
-    id = property(get_id, set_id)
+    id = property(__get_id, __set_id)
 
     #
     # active accesor
     #
-    def get_active(self):
+    def __get_active(self):
         return self.__active
 
-    def set_active(self, new_active):
+    def __set_active(self, new_active):
         """
         Ensure new value is a boolean before setting the active state.
         :param new_active: new active state for the alarm instance.
@@ -87,15 +83,15 @@ class AlarmItem(object):
             print('ERROR: Provided AlarmItem().active type is not a boolean' +
                   ': %s!' % new_active, file=sys.stderr)
 
-    active = property(get_active, set_active)
+    active = property(__get_active, __set_active)
 
     #
     # minute accesor
     #
-    def get_minute(self):
+    def __get_minute(self):
         return self.__minute
 
-    def set_minute(self, new_minute):
+    def __set_minute(self, new_minute):
         """
         Checks input is an integer and wraps around value to be between 0 - 59.
         :param new_minute: new alarm minutes for the alarm instance.
@@ -108,15 +104,15 @@ class AlarmItem(object):
             print('ERROR: Provided AlarmItem().minute type is not an Integer' +
                   ': %s!' % new_minute, file=sys.stderr)
 
-    minute = property(get_minute, set_minute)
+    minute = property(__get_minute, __set_minute)
 
     #
     # hour accesor
     #
-    def get_hour(self):
+    def __get_hour(self):
         return self.__hour
 
-    def set_hour(self, new_hour):
+    def __set_hour(self, new_hour):
         """
         Checks input is an integer and wraps around value to be between 0 - 23.
         :param new_hour: new alarm hours for the alarm instance.
@@ -129,12 +125,12 @@ class AlarmItem(object):
             print('ERROR: Provided AlarmItem().hour type is not an Integer' +
                   ': %s!' % new_hour, file=sys.stderr)
 
-    hour = property(get_hour, set_hour)
+    hour = property(__get_hour, __set_hour)
 
     #
     # repeat accesor
     #
-    def get_repeat(self):
+    def __get_repeat(self):
         """
         Returns the days of the week alarm repetition in the form of a tuple.
         :return: Tuple with 7 booleans to indicate repetition for the weekdays.
@@ -145,7 +141,7 @@ class AlarmItem(object):
                         self.__repeat['Sunday'])
         return repeat_tuple
 
-    def set_repeat(self, new_repeat):
+    def __set_repeat(self, new_repeat):
         """
         Checks that it is a list/tuple of 7 booleans and if so assigns them to
         the _repeat dictionary.
@@ -170,92 +166,138 @@ class AlarmItem(object):
             print('ERROR: The AlarmItem().repeat must be a list of 7 booleans!',
                   file=sys.stderr)
 
-    repeat = property(get_repeat, set_repeat)
+    repeat = property(__get_repeat, __set_repeat)
 
-    def get_monday(self):
+    def __get_monday(self):
         return self.__repeat['Monday']
 
-    def set_monday(self, new_monday):
+    def __set_monday(self, new_monday):
         if isinstance(new_monday, types.BooleanType):
             self.__repeat['Monday'] = new_monday
         else:
             print('ERROR: New value for the AlarmItem().monday variable has ' +
                   'to be a Boolean !', file=sys.stderr)
 
-    monday = property(get_monday, set_monday)
+    monday = property(__get_monday, __set_monday)
 
-    def get_tuesday(self):
+    def __get_tuesday(self):
         return self.__repeat['Tuesday']
 
-    def set_tuesday(self, new_tuesday):
+    def __set_tuesday(self, new_tuesday):
         if isinstance(new_tuesday, types.BooleanType):
             self.__repeat['Tuesday'] = new_tuesday
         else:
             print('ERROR: New value for the AlarmItem().tuesday variable has ' +
                   'to be a Boolean !', file=sys.stderr)
 
-    tuesday = property(get_tuesday, set_tuesday)
+    tuesday = property(__get_tuesday, __set_tuesday)
 
-    def get_wednesday(self):
+    def __get_wednesday(self):
         return self.__repeat['Wednesday']
 
-    def set_wednesday(self, new_wednesday):
+    def __set_wednesday(self, new_wednesday):
         if isinstance(new_wednesday, types.BooleanType):
             self.__repeat['Wednesday'] = new_wednesday
         else:
             print('ERROR: New value for the AlarmItem().wednesday variable ' +
                   'has to be a Boolean !', file=sys.stderr)
 
-    wednesday = property(get_wednesday,set_wednesday)
+    wednesday = property(__get_wednesday, __set_wednesday)
 
-    def get_thursday(self):
+    def __get_thursday(self):
         return self.__repeat['Thursday']
 
-    def set_thursday(self, new_thursday):
+    def __set_thursday(self, new_thursday):
         if isinstance(new_thursday, types.BooleanType):
             self.__repeat['Thursday'] = new_thursday
         else:
             print('ERROR: New value for the AlarmItem().thursday variable ' +
                   'has to be a Boolean !', file=sys.stderr)
 
-    thursday = property(get_thursday, set_thursday)
+    thursday = property(__get_thursday, __set_thursday)
 
-    def get_friday(self):
+    def __get_friday(self):
         return self.__repeat['Friday']
 
-    def set_friday(self, new_friday):
+    def __set_friday(self, new_friday):
         if isinstance(new_friday, types.BooleanType):
             self.__repeat['Friday'] = new_friday
         else:
             print('ERROR: New value for the AlarmItem().friday variable has ' +
                   'to be a Boolean !', file=sys.stderr)
 
-    friday = property(get_friday, set_friday)
+    friday = property(__get_friday, __set_friday)
 
-    def get_saturday(self):
+    def __get_saturday(self):
         return self.__repeat['Saturday']
 
-    def set_saturday(self, new_saturday):
+    def __set_saturday(self, new_saturday):
         if isinstance(new_saturday, types.BooleanType):
             self.__repeat['Saturday'] = new_saturday
         else:
             print('ERROR: New value for the AlarmItem().saturday variable ' +
                   'has to be a Boolean !', file=sys.stderr)
 
-    saturday = property(get_saturday, set_saturday)
+    saturday = property(__get_saturday, __set_saturday)
 
-    def get_sunday(self):
+    def __get_sunday(self):
         return self.__repeat['Sunday']
 
-    def set_sunday(self, new_sunday):
+    def __set_sunday(self, new_sunday):
         if isinstance(new_sunday, types.BooleanType):
             self.__repeat['Sunday'] = new_sunday
         else:
             print('ERROR: New value for the AlarmItem().sunday variable ' +
                   'has to be a Boolean !', file=sys.stderr)
 
-    sunday = property(get_sunday, set_sunday)
+    sunday = property(__get_sunday, __set_sunday)
 
     #
-    # member methods
+    # member methods to calculate time
     #
+    def minutes_to_alert(self, hour, minute, weekday):
+        """
+        Calculates the time in minutes that will elapse from the initial
+        reference input time and weekday and the first time this alarm will have
+        to trigger an alert (independently of this alarm being active or not).
+        :param hour: start hour, value 0-23.
+        :param minute: start minute, value 0-59.
+        :param weekday: start weekday, value 0-6.
+        :return: Integer indicating the amount in minutes until the alarm
+                 triggers from the initial reference time and weekday.
+        """
+        alarm_day_minute = self.minute + (self.hour * 60)
+        ref_day_minute = minute + (hour * 60)
+        one_day_minutes = 1440
+
+        # First corner case, check the same day after input time
+        if (self.repeat[weekday] is True) and \
+                (alarm_day_minute >= ref_day_minute):
+            return alarm_day_minute - ref_day_minute
+
+        # Check the rest of the week until, but not including, the same day
+        day = weekday + 1
+        day_count = 1
+        while day != weekday:
+            if self.repeat[day] is True:
+                # Add the days in minutes and relative time to reference
+                minutes_difference = day_count * one_day_minutes
+                if alarm_day_minute >= ref_day_minute:
+                    minutes_difference += alarm_day_minute - ref_day_minute
+                else:
+                    minutes_difference -= ref_day_minute - alarm_day_minute
+                # Returns on first encountered alarm
+                return minutes_difference
+            else:
+                day += 1
+                day_count += 1
+                if day > 6:
+                    day = 0
+
+        # Second corner case, check the same day before input time
+        if (self.repeat[weekday] is True) and \
+                (ref_day_minute > alarm_day_minute):
+            return (one_day_minutes * 7) - ref_day_minute + alarm_day_minute
+
+        # Alarm has no active days
+        return None
