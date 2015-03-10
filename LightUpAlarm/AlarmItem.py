@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #
-# Class to contain the data for a single alarm.
+# Class to define an Alarm.
 #
 # Copyright (c) 2015 carlosperate https://github.com/carlosperate/
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals, absolute_import, print_function
 from __builtin__ import property
+import collections
 import types
 import sys
 
@@ -18,7 +19,7 @@ class AlarmItem(object):
     .
     """
     #
-    # constructor
+    # metaclass methods: constructor and print
     #
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
@@ -35,9 +36,14 @@ class AlarmItem(object):
         self.__minute = 0
         self.__hour = 0
         # Contains the days of the weeks that this alarm repeats
-        self.__repeat = {'Monday': False, 'Tuesday': False, 'Wednesday': False,
-                         'Thursday': False, 'Friday': False, 'Saturday': False,
-                         'Sunday': False}
+        self.__repeat = collections.OrderedDict()
+        self.__repeat['Monday'] = False
+        self.__repeat['Tuesday'] = False
+        self.__repeat['Wednesday'] = False
+        self.__repeat['Thursday'] = False
+        self.__repeat['Friday'] = False
+        self.__repeat['Saturday'] = False
+        self.__repeat['Sunday'] = False
 
         # Assigning values using accessors
         self.hour = hour
@@ -46,6 +52,21 @@ class AlarmItem(object):
         self.active = active
         if alarm_id is not None:
             self.id = alarm_id
+
+    def __str__(self):
+        """
+        Converts the class instance data into a readable string format.
+        :return: String with all the alarm data.
+        """
+        ret_str = 'Alarm ID: %3d | Time: %02d:%02d | Active: %5s | Repeat: ' % \
+                  (self.id, self.hour, self.minute, self.active)
+        for day in self.__repeat:
+            if self.__repeat[day] is True:
+                ret_str += "%s " % str(day)[:3]
+            else:
+                ret_str += "--- "
+
+        return ret_str
 
     #
     # id accesor
@@ -155,13 +176,10 @@ class AlarmItem(object):
                           'have to be Booleans!', file=sys.stderr)
                     break
             else:
-                self.__repeat['Monday'] = new_repeat[0]
-                self.__repeat['Tuesday'] = new_repeat[1]
-                self.__repeat['Wednesday'] = new_repeat[2]
-                self.__repeat['Thursday'] = new_repeat[3]
-                self.__repeat['Friday'] = new_repeat[4]
-                self.__repeat['Saturday'] = new_repeat[5]
-                self.__repeat['Sunday'] = new_repeat[6]
+                day_int = 0
+                for day in self.__repeat:
+                    self.__repeat[day] = new_repeat[day_int]
+                    day_int += 1
         else:
             print('ERROR: The AlarmItem().repeat must be a list of 7 booleans!',
                   file=sys.stderr)
@@ -277,6 +295,8 @@ class AlarmItem(object):
 
         # Check the rest of the week until, but not including, the same day
         day = weekday + 1
+        if day > 6:
+                day = 0
         day_count = 1
         while day != weekday:
             if self.repeat[day] is True:

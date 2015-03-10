@@ -365,6 +365,14 @@ class AlarmItemTestCase(unittest.TestCase):
         time_diff = test_alarm.minutes_to_alert(4, 15, 2)
         self.assertEqual(time_diff, ((one_day * 5) + (60 * 5) + 15))
 
+    def test_string_alarm(self):
+        """ Checks the __str__ output is correct. """
+        test_alarm = AlarmItem(
+            9, 30, (True, False, False, True, False, False, True), True)
+        test_alarm.id = 10
+        out = 'Alarm ID:  10 | Time: 09:30 | Active:  True | Repeat: ' +\
+              'Mon --- --- Thu --- --- Sun '
+        self.assertEqual(str(test_alarm), out)
 
 if __name__ == '__main__':
     unittest.main()
