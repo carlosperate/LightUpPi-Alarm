@@ -45,7 +45,7 @@ class AlarmDbTestCase(unittest.TestCase):
             os.remove(db_file)
         self.assertFalse(os.path.isfile(db_file))
         adh = AlarmDb(self.db_name)
-        adh._connect()
+        adh._AlarmDb__connect()
         self.assertTrue(os.path.isfile(db_file))
 
     def test_entry(self):
