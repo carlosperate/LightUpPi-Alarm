@@ -57,8 +57,8 @@ class AlarmDbTestCase(unittest.TestCase):
 
         adh = AlarmDb(self.db_name)
         test_alarm = AlarmItem(hour, minute, days, active)
-        test_alarm.id = adh.add_alarm(test_alarm)
-        retrieved_alarm = adh.get_alarm(test_alarm.id)
+        test_alarm.id_ = adh.add_alarm(test_alarm)
+        retrieved_alarm = adh.get_alarm(test_alarm.id_)
         self.assertEqual(hour, retrieved_alarm.hour)
         self.assertEqual(minute, retrieved_alarm.minute)
         self.assertEqual(days[0], retrieved_alarm.monday)
@@ -153,12 +153,12 @@ class AlarmDbTestCase(unittest.TestCase):
         adh.delete_all_alarms()
         alarm_test = AlarmItem(
             13, 35, (False, False, False, False, False, False, False), True)
-        alarm_test.id = adh.add_alarm(alarm_test)
+        alarm_test.id_ = adh.add_alarm(alarm_test)
         edit_success = adh.edit_alarm(
-            alarm_test.id, 11, 22, (True, True, True, True, True, True, True),
+            alarm_test.id_, 11, 22, (True, True, True, True, True, True, True),
             False)
         self.assertEqual(edit_success, True)
-        edited_alarm = adh.get_alarm(alarm_test.id)
+        edited_alarm = adh.get_alarm(alarm_test.id_)
         self.assertEqual(edited_alarm.hour, 11)
         self.assertEqual(edited_alarm.minute, 22)
         self.assertTrue(edited_alarm.monday)
@@ -178,10 +178,10 @@ class AlarmDbTestCase(unittest.TestCase):
         adh = AlarmDb(self.db_name)
         alarm_test = AlarmItem(
             13, 35, (True, False, True, False, True, False, True), True)
-        alarm_test.id = adh.add_alarm(alarm_test)
-        edit_success = adh.edit_alarm(alarm_test.id, minute=0)
+        alarm_test.id_ = adh.add_alarm(alarm_test)
+        edit_success = adh.edit_alarm(alarm_test.id_, minute=0)
         self.assertTrue(edit_success)
-        edited_alarm = adh.get_alarm(alarm_test.id)
+        edited_alarm = adh.get_alarm(alarm_test.id_)
         self.assertEqual(edited_alarm.hour, 13)
         self.assertEqual(edited_alarm.minute, 0)
         self.assertTrue(edited_alarm.monday)
@@ -195,10 +195,10 @@ class AlarmDbTestCase(unittest.TestCase):
         # Test with opposite initial values
         alarm_test = AlarmItem(
             10, 20, (False, True, False, True, False, True, False), False)
-        alarm_test.id = adh.add_alarm(alarm_test)
-        edit_success = adh.edit_alarm(alarm_test.id, hour=0)
+        alarm_test.id_ = adh.add_alarm(alarm_test)
+        edit_success = adh.edit_alarm(alarm_test.id_, hour=0)
         self.assertTrue(edit_success)
-        edited_alarm = adh.get_alarm(alarm_test.id)
+        edited_alarm = adh.get_alarm(alarm_test.id_)
         self.assertEqual(edited_alarm.hour, 0)
         self.assertEqual(edited_alarm.minute, 20)
         self.assertFalse(edited_alarm.monday)
