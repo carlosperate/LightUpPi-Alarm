@@ -15,6 +15,15 @@ from LightUpAlarm.AlarmItem import AlarmItem
 class AlarmItemTestCase(unittest.TestCase):
     """ Tests for AlarmItem class. """
 
+    def assert_repeat(self, alarm_test, days):
+        self.assertEqual(alarm_test.monday, days[0])
+        self.assertEqual(alarm_test.tuesday, days[1])
+        self.assertEqual(alarm_test.wednesday, days[2])
+        self.assertEqual(alarm_test.thursday, days[3])
+        self.assertEqual(alarm_test.friday, days[4])
+        self.assertEqual(alarm_test.saturday, days[5])
+        self.assertEqual(alarm_test.sunday, days[6])
+
     def test_constructor(self):
         """ Tests valid inputs to the constructor. """
         hour = 23
@@ -159,26 +168,14 @@ class AlarmItemTestCase(unittest.TestCase):
         # Test constructor input
         alarm_test = AlarmItem(0, 0, days, False)
         self.assertEqual(alarm_test.repeat, tuple(days))
-        self.assertEqual(alarm_test.monday, days[0])
-        self.assertEqual(alarm_test.tuesday, days[1])
-        self.assertEqual(alarm_test.wednesday, days[2])
-        self.assertEqual(alarm_test.thursday, days[3])
-        self.assertEqual(alarm_test.friday, days[4])
-        self.assertEqual(alarm_test.saturday, days[5])
-        self.assertEqual(alarm_test.sunday, days[6])
+        self.assert_repeat(alarm_test, days)
 
         # Test repeat accesor with opposite repeat list
         for i in xrange(len(days)):
             days[i] = not days[i]
         alarm_test.repeat = days
         self.assertEqual(alarm_test.repeat, tuple(days))
-        self.assertEqual(alarm_test.monday, days[0])
-        self.assertEqual(alarm_test.tuesday, days[1])
-        self.assertEqual(alarm_test.wednesday, days[2])
-        self.assertEqual(alarm_test.thursday, days[3])
-        self.assertEqual(alarm_test.friday, days[4])
-        self.assertEqual(alarm_test.saturday, days[5])
-        self.assertEqual(alarm_test.sunday, days[6])
+        self.assert_repeat(alarm_test, days)
 
     def test_repeat_accessors_set(self):
         """
@@ -196,13 +193,7 @@ class AlarmItemTestCase(unittest.TestCase):
         alarm_test.friday = days[4]
         alarm_test.saturday = days[5]
         alarm_test.sunday = days[6]
-        self.assertEqual(alarm_test.monday, days[0])
-        self.assertEqual(alarm_test.tuesday, days[1])
-        self.assertEqual(alarm_test.wednesday, days[2])
-        self.assertEqual(alarm_test.thursday, days[3])
-        self.assertEqual(alarm_test.friday, days[4])
-        self.assertEqual(alarm_test.saturday, days[5])
-        self.assertEqual(alarm_test.sunday, days[6])
+        self.assert_repeat(alarm_test, days)
 
         # To test the incorrect value, the accessor setter prints to stderr
         # if bad data is encountered, so we need to capture stderr to test it.
@@ -312,24 +303,24 @@ class AlarmItemTestCase(unittest.TestCase):
     def test_id(self):
         """ Tests the id member variable accessors filters non-integers. """
         alarm_test = AlarmItem(0, 0)
-        alarm_test.id = 5
-        self.assertEqual(5, alarm_test.id)
+        alarm_test.id_ = 5
+        self.assertEqual(5, alarm_test.id_)
 
         # The accessor setter prints to stderr if bad data is encountered, so
         # we need to capture stderr to test it.
         with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
             # First ensure that successful set does not write to stderr
             self.assertEqual(test_srderr.getvalue(), '')
-            alarm_test.id = 10
+            alarm_test.id_ = 10
             self.assertEqual(test_srderr.getvalue(), '')
             # String instead of integer
-            alarm_test.id = 'String'
+            alarm_test.id_ = 'String'
             self.assertNotEqual(test_srderr.getvalue(), '')
             # Float instead of integer
             test_srderr.truncate(0)
             test_srderr.write('')
             self.assertEqual(test_srderr.getvalue(), '')
-            alarm_test.id = 10.4
+            alarm_test.id_ = 10.4
             self.assertNotEqual(test_srderr.getvalue(), '')
 
     def test_time_to_alarm(self):
@@ -369,10 +360,19 @@ class AlarmItemTestCase(unittest.TestCase):
         """ Checks the __str__ output is correct. """
         test_alarm = AlarmItem(
             9, 30, (True, False, False, True, False, False, True), True)
-        test_alarm.id = 10
+        test_alarm.id_ = 10
         out = 'Alarm ID:  10 | Time: 09:30 | Active:  True | Repeat: ' +\
               'Mon --- --- Thu --- --- Sun '
         self.assertEqual(str(test_alarm), out)
+
+    def test_any_active_day(self):
+        """ Test any_active_day() returns False if all repeats are false. """
+        test_alarm = AlarmItem(
+            9, 30, (True, False, False, True, False, False, True), True)
+        self.assertTrue(test_alarm.any_active_day())
+        test_alarm.repeat = (False, False, False, False, False, False, False)
+        self.assertFalse(test_alarm.any_active_day())
+
 
 if __name__ == '__main__':
     unittest.main()

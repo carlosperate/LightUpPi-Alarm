@@ -51,7 +51,7 @@ class AlarmItem(object):
         self.repeat = days
         self.active = active
         if alarm_id is not None:
-            self.id = alarm_id
+            self.id_ = alarm_id
 
     def __str__(self):
         """
@@ -59,7 +59,7 @@ class AlarmItem(object):
         :return: String with all the alarm data.
         """
         ret_str = 'Alarm ID: %3d | Time: %02d:%02d | Active: %5s | Repeat: ' % \
-                  (self.id, self.hour, self.minute, self.active)
+                  (self.id_, self.hour, self.minute, self.active)
         for day in self.__repeat:
             if self.__repeat[day] is True:
                 ret_str += "%s " % str(day)[:3]
@@ -85,7 +85,7 @@ class AlarmItem(object):
             print('ERROR: Provided AlarmItem().id type is not an Integer' +
                   ': %s!' % new_id, file=sys.stderr)
 
-    id = property(__get_id, __set_id)
+    id_ = property(__get_id, __set_id)
 
     #
     # active accesor
@@ -271,6 +271,20 @@ class AlarmItem(object):
     sunday = property(__get_sunday, __set_sunday)
 
     #
+    # member methods to retrieve specific data
+    #
+    def any_active_day(self):
+        """
+        Check if there are any repeat days active.
+        :return: A boolean value indicating if an repeat weekday is activated.
+        """
+        any_active = False
+        for day in self.__repeat:
+            if self.__repeat[day] is True:
+                any_active = True
+        return any_active
+
+    #
     # member methods to calculate time
     #
     def minutes_to_alert(self, hour, minute, weekday):
@@ -296,7 +310,7 @@ class AlarmItem(object):
         # Check the rest of the week until, but not including, the same day
         day = weekday + 1
         if day > 6:
-                day = 0
+            day = 0
         day_count = 1
         while day != weekday:
             if self.repeat[day] is True:
