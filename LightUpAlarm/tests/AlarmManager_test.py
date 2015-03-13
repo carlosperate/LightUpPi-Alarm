@@ -178,23 +178,49 @@ class AlarmManagerTestCase(unittest.TestCase):
         alarm_mgr = AlarmManager()
         alarm_mgr.delete_all_alarms()
         numb_threads = threading.activeCount()
+
+        # Test setting inactive alarm
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm)
         self.assertFalse(launch_success)
         self.assertEqual(threading.activeCount(), numb_threads)
 
+        # Test active alarm with no repeats
         alarm.repeat = (False, False, False, False, False, False, False)
         alarm.active = True
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm)
         self.assertFalse(launch_success)
         self.assertEqual(threading.activeCount(), numb_threads)
 
+        # Test good alarm
         alarm.wednesday = True
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm)
         self.assertTrue(launch_success)
         self.assertGreater(threading.activeCount(), numb_threads)
 
     def test_set_alarm_thread_edit(self):
-        pass
+        """
+        Tests the __set_alarm_thread when an existing alarm thread is inputted.
+        No need to check for input with wrong ID as that gets dealt with in the
+        AlarmThread class and unit test.
+        """
+        time_now = time.localtime(time.time())
+        first_alarm = AlarmItem(
+            time_now.tm_hour - 1, 34,
+            (True, True, True, True, True, True, True), True, 96)
+        new_alarm = AlarmItem(
+            time_now.tm_hour - 1, 34,
+            (False, False, False, False, False, False, False), False, 96)
+        alarm_mgr = AlarmManager()
+        alarm_mgr.delete_all_alarms()
+        numb_threads = threading.activeCount()
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(first_alarm)
+        self.assertTrue(launch_success)
+        self.assertGreater(threading.activeCount(), numb_threads)
+
+        # Editing to the new alarm data should stop the thread as it is inactive
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(new_alarm)
+        self.assertFalse(launch_success)
+        self.assertEqual(threading.activeCount(), numb_threads)
 
     def test_stop_alarm_thread(self):
         """
@@ -229,13 +255,16 @@ class AlarmManagerTestCase(unittest.TestCase):
         correctly.
         This test uses the static variable AlarmManagerTestCase.thread_alert to
         be be change it in the callback function, and exit an infinite loop.
-        This test can take a maximum of 1 minute to complete.
+        This test can take over 10 seconds in its worse case scenario.
         """
+        # Set alarm for current minute, but only if there is at least 10 seconds
+        # left for this minute. Better than setting it for the next minute.
         time_now = time.localtime(time.time())
-        # Set alarm for next minute. Better than current minute as it might pass
-        # before the alarm thread is able to trigger.
+        while time_now.tm_sec > 50:
+            time.sleep(1)
+            time_now = time.localtime(time.time())
         alarm = AlarmItem(
-            time_now.tm_hour, time_now.tm_min + 1,
+            time_now.tm_hour, time_now.tm_min,
             (True, True, True, True, True, True, True), True, 96)
         alarm_mgr = AlarmManager(alarm_callback=AlarmManagerTestCase.c)
         alarm_mgr.delete_all_alarms()
