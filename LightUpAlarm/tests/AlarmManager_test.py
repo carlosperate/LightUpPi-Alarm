@@ -8,7 +8,6 @@
 # The following methods are basically a call to the AlarmDb class and do not
 # need to be tested:
 #  get_all_alarms, get_number_of_alarms, get_all_active_alarms, get_alarm,
-#  delete_alarm, delete_all_alarms
 #
 from __future__ import unicode_literals, absolute_import
 import unittest
@@ -80,6 +79,37 @@ class AlarmManagerTestCase(unittest.TestCase):
         self.assertEqual(alarm_mgr.get_number_of_alarms(), 0)
         alarm_mgr = AlarmManager()
         self.assertNotEqual(alarm_mgr.get_number_of_alarms(), 0)
+
+    def test_delete_alarm(self):
+        """
+        Adds 5 alarms to the database, checks it is able to retrieve one of
+        them and proceeds to delete and check it has been deleted.
+        """
+        alarm_mgr = AlarmManager()
+        self.create_alarms(alarm_mgr)
+        numb_alarms = AlarmManager.get_number_of_alarms()
+        self.assertGreater(numb_alarms, 0)
+        all_alarms = AlarmManager.get_all_alarms()
+        alarm_retrieved = AlarmManager.get_alarm(all_alarms[0].id_)
+        self.assertIsNotNone(alarm_retrieved)
+        delete_success = alarm_mgr.delete_alarm(1)
+        self.assertTrue(delete_success)
+        self.assertLess(AlarmManager.get_number_of_alarms(), numb_alarms)
+        alarm_retrieved = AlarmManager.get_alarm(alarm_retrieved.id_)
+        self.assertIsNone(alarm_retrieved)
+
+    def test_delete_all_alarms(self):
+        """
+        Adds 5 alarms to the database, checks there are alarms in the db and
+        proceeds to delete them all and check.
+        """
+        alarm_mgr = AlarmManager()
+        self.create_alarms(alarm_mgr)
+        numb_alarms = AlarmManager.get_number_of_alarms()
+        self.assertGreater(numb_alarms, 0)
+        delete_success = alarm_mgr.delete_all_alarms()
+        self.assertTrue(delete_success)
+        self.assertEqual(AlarmManager.get_number_of_alarms(), 0)
 
     @mock.patch('LightUpAlarm.AlarmManager.time.localtime')
     def test_get_next_alarm(self, mock_time):
@@ -241,6 +271,32 @@ class AlarmManagerTestCase(unittest.TestCase):
         stop_success = alarm_mgr._AlarmManager__stop_alarm_thread(alarm.id_)
         self.assertTrue(stop_success)
         self.assertEqual(threading.activeCount(), numb_threads)
+
+    def test_stop_all_alarm_threads(self):
+        """
+        Launches 2 alarms threads, checks they are running and them stops them
+        all and checks again.
+        """
+        time_now = time.localtime(time.time())
+        alarm_one = AlarmItem(
+            time_now.tm_hour - 1, 34,
+            (False, False, False, False, False, False, True), True, 31)
+        alarm_two = AlarmItem(
+            time_now.tm_hour - 1, 34,
+            (False, False, False, False, False, False, True), True, 32)
+        alarm_mgr = AlarmManager()
+        # There is a bit of circular dependency here as delete all will execute
+        # __stop_all_alarm_threads
+        alarm_mgr.delete_all_alarms()
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm_one)
+        self.assertTrue(launch_success)
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm_two)
+        self.assertTrue(launch_success)
+        numb_threads = threading.activeCount()
+        self.assertGreaterEqual(numb_threads, 2)
+        delete_success = alarm_mgr._AlarmManager__stop_all_alarm_threads()
+        self.assertTrue(delete_success)
+        self.assertEqual(threading.activeCount(), numb_threads - 2)
 
     # Needed to be able to test the thread callback
     thread_alert = False
