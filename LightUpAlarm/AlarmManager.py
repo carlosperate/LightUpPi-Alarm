@@ -10,8 +10,10 @@
 from __future__ import unicode_literals, absolute_import
 import time
 import operator
+from LightUpAlarm import AlarmThread
 from LightUpAlarm.AlarmItem import AlarmItem
 from LightUpAlarm.AlarmDb import AlarmDb
+from LightUpAlarm.AlarmThread import AlarmThread
 
 
 class AlarmManager(object):
@@ -22,16 +24,30 @@ class AlarmManager(object):
     #
     # constructor
     #
-    def __init__(self):
+    def __init__(self, alarm_callback=None):
         """
         On initialization we connect to the database and check if there are
         any alarms to load. If not, load a couple of dummy alarms.
+        It also registers any alarms present in the database.
+        :param alarm_callback: Optional argument to register a callback function
+                               to be executed on an alarm alert.
         """
+        # Save the alarm callback function as a private member variable
+        self.__alarm_callback = alarm_callback
+        # Create a private member list for the alarm threads
+        self.__alarm_threads = []
+
+        # Set dummy alarms if database empty
         if AlarmDb().get_number_of_alarms() == 0:
             self.load_dummy_alarms()
 
+        # Register any active alarms from the database
+        alarms = AlarmManager.get_all_active_alarms()
+        for alarm in alarms:
+            self.__set_alarm_thread(alarm)
+
     #
-    # member methods to get alarms
+    # static methods to retrieve alarms
     #
     @staticmethod
     def get_all_alarms():
@@ -93,12 +109,12 @@ class AlarmManager(object):
     #
     # member methods to add alarms
     #
-    @staticmethod
-    def add_alarm(hour, minute,
+    def add_alarm(self, hour, minute,
                   days=(False, False, False, False, False, False, False),
                   active=True):
         """
         Adds an alarm to the database with the input values.
+        If the alarm is active, it launches its alarm thread.
         :param hour: Integer to indicate the alarm hour.
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
@@ -106,31 +122,34 @@ class AlarmManager(object):
         :return: Boolean indicating the success of the 'edit' operation.
         """
         alarm = AlarmItem(hour, minute, days, active)
-        alarm.id = AlarmDb().add_alarm(alarm)
-        if alarm.id is not None:
+        alarm.id_ = AlarmDb().add_alarm(alarm)
+        if alarm.id_ is not None:
+            # Launch the alarm as a thread if it is active
+            if active is True:
+                self.__set_alarm_thread(alarm)
             return True
         else:
             return False
 
-    @staticmethod
-    def load_dummy_alarms():
+    def load_dummy_alarms(self):
         """
-        It loads 2 dummy alarms into the database for demonstration purposes.
+        It loads 2 inactive dummy alarms into the database for demonstration
+        purposes.
         """
-        AlarmManager.add_alarm(
-            07, 10, (True, True, True, True, True, False, False))
-        AlarmManager.add_alarm(
-            10, 30, (False, False, False, False, False, True, True))
+        self.add_alarm(
+            07, 10, (True, True, True, True, True, False, False), False)
+        self.add_alarm(
+            10, 30, (False, False, False, False, False, True, True), False)
 
     #
     # member methods to edit alarms
     #
-    @staticmethod
-    def edit_alarm(alarm_id, hour=None, minute=None, days=None,
+    def edit_alarm(self, alarm_id, hour=None, minute=None, days=None,
                    active=None):
         """
-        Adds an alarm to the database with the input data. Returns the new row
-        primary key.
+        Edits an alarm from the database with the input data.
+        It then
+        Returns success status of the operation.
         :param hour: Integer to indicate the alarm hour.
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
@@ -159,31 +178,134 @@ class AlarmManager(object):
             individual_success = db.edit_alarm(alarm_id, active=active)
             if not individual_success:
                 success = False
+
+        # If a successful edit was carried, then make sure the alarm is launched
+        if success is True:
+            self.__set_alarm_thread(AlarmManager.get_alarm(alarm_id))
+
         return success
 
-    @staticmethod
-    def delete_alarm(alarm_id):
+    def delete_alarm(self, alarm_id):
         """
-        Remove the alarm with the given ID from the database.
+        Remove the alarm with the given ID from the database and remove its
+        alarm thread.
         :param alarm_id: Integer to indicate the primary key of the Alarm to be
                          removed.
         :return: Boolean indicating the success of the 'delete alarm' operation.
         """
+        # First we need to ensure it there is no alarm thread running for it
+        self.__stop_alarm_thread(alarm_id)
+        # Remove it from the database
         return AlarmDb().delete_alarm(alarm_id)
 
-    @staticmethod
-    def delete_all_alarms():
+    def delete_all_alarms(self):
         """
-        Removes all the alarms from the database.
+        Removes all alarm threads and alarms from the database.
         :return: Boolean indicating the success of the 'delete all' operation.
         """
-        return AlarmDb().delete_all_alarms()
+        # Ensure there are no alarm threads running anymore
+        thread_success = self.__stop_all_alarm_threads
+        # Remove from database
+        db_success = AlarmDb().delete_all_alarms()
+
+        if thread_success and db_success:
+            return True
+        else:
+            return False
 
     #
-    # member methods to register and un-register alarm events
+    # member methods to launch, edit and stop alarm events
     #
-    def register_alarm(self, alarm):
-        pass
+    def __set_alarm_thread(self, alarm):
+        """
+        :param alarm: AlarmItem of the thread to set
+        :return: Boolean indicating the the Alarm Thread is running
+        """
+        thread_up = False
+        # First check if the alarm to be register is already in the list
+        for alarm_thread in self.__alarm_threads:
+            if alarm.id_ == alarm_thread.get_id():
+                # Already launched, check if should be stopped or edited
+                if (alarm.active is False) or (alarm.any_active_day() is False):
+                    self.__stop_alarm_thread(alarm.id_)
+                else:
+                    alarm_thread.edit_alarm(alarm)
+                    thread_up = True
+                break
+        # Else only executes if no alarm with same ID was found
+        else:
+            # Before thread is launched, check if the alarm is active and has
+            # repeat days selected
+            if (alarm.active is True) and (alarm.any_active_day() is True):
+                alarm_thread = AlarmThread(alarm, self.__alarm_triggered)
+                self.__alarm_threads.append(alarm_thread)
+                alarm_thread.start()
+                thread_up = True
+
+        return thread_up
+
+    def __stop_alarm_thread(self, alarm_id):
+        """
+        Stops an AlarmThread and removes item from the threads list.
+        :param alarm_id: ID of the AlarmItem for the alarm thread to stop.
+        This method can take up to 10 seconds to run.
+        :return: Boolean indicating if the operation was successful.
+        """
+        success = False
+        for alarm_thread in self.__alarm_threads:
+            if alarm_id == alarm_thread.get_id():
+                alarm_thread.stop()
+                # Check that it has really stopped for a maximum period of 10s
+                seconds_passed = 0
+                while alarm_thread.isAlive() and (seconds_passed < 100):
+                    time.sleep(0.1)
+                    seconds_passed += 1
+                # isAlive returns False if it has stopped
+                success = not alarm_thread.isAlive()
+                if success is True:
+                    self.__alarm_threads.remove(alarm_thread)
+        return success
+
+    def __stop_all_alarm_threads(self):
+        """
+        Stops all AlarmThreads and removes items from the threads list.
+        This method can take up to 15 seconds to run.
+        :return: Boolean indicating if the operation was successful.
+        """
+        for alarm_thread in self.__alarm_threads:
+            alarm_thread.stop()
+
+        # Check that all threads have really stopped for a maximum period of 15s
+        seconds_passed = 0
+        continue_trying = True
+        while continue_trying and (seconds_passed < 150):
+            continue_trying = False
+            for alarm_thread in self.__alarm_threads:
+                if alarm_thread.isAlive() is True:
+                    continue_trying = True
+            time.sleep(0.1)
+            seconds_passed += 1
+
+        # Returns
+        success = not alarm_thread.isAlive()
+        if success is True:
+            self.__alarm_threads.remove(alarm_thread)
+        return success
+
+    #
+    # other member methods
+    #
+    def __alarm_triggered(self):
+        """
+        This method is sent as a callback to each Alarm threads. It is meant to
+        be executed when the alarm alert is raised.
+        It executes the callback indicated on AlertManger constructor.
+        :return:
+        """
+        # run AlertManager callback event
+        if self.__alarm_callback is not None:
+            self.__alarm_callback()
+            print('This is an alarm ALERT!!! ')
 
 
 if __name__ == "__main__":
