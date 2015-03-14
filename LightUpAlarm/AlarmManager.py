@@ -42,7 +42,7 @@ class AlarmManager(object):
             self.load_dummy_alarms()
 
         # Register any enabled alarms from the database
-        alarms = AlarmManager.get_all_enabled_alarms()
+        alarms = AlarmManager.get_all_active_alarms()
         for alarm in alarms:
             self.__set_alarm_thread(alarm)
 
@@ -74,6 +74,30 @@ class AlarmManager(object):
                  empty list if there aren't any.
         """
         return AlarmDb().get_all_enabled_alarms()
+
+    @staticmethod
+    def get_all_disabled_alarms():
+        """
+        Gets all the disabled alarms from the database.
+        :return: List of AlarmItems containing all enabled alarms. Returns an
+                 empty list if there aren't any.
+        """
+        return AlarmDb().get_all_disabled_alarms()
+
+    @staticmethod
+    def get_all_active_alarms():
+        """
+        Gets all the active alarms (enabled with at least one repeating day)
+        from the database.
+        :return: List of AlarmItems containing all enabled alarms. Returns an
+                 empty list if there aren't any.
+        """
+        active_alarms = AlarmManager.get_all_enabled_alarms()
+        # Need to iterate backwards in order to remove items safely
+        for i in xrange(len(active_alarms) - 1, -1, -1):
+            if active_alarms[i].any_day_enabled() is False:
+                del active_alarms[i]
+        return active_alarms
 
     @staticmethod
     def get_alarm(alarm_id):
@@ -147,8 +171,6 @@ class AlarmManager(object):
                    enabled=None):
         """
         Edits an alarm from the database with the input data.
-        It then
-        Returns success status of the operation.
         :param hour: Integer to indicate the alarm hour.
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
@@ -220,6 +242,7 @@ class AlarmManager(object):
         Takes an input alarm and determines if is active, in order to be
         launched as an alarm thread, or if a thread should be changed due to
         the new alarm data.
+        Maintains the thread list updated with the runningalarms.
         :param alarm: AlarmItem to launch, edited, or stop thread.
         :return: Boolean indicating if Alarm Thread is running.
         """
@@ -228,7 +251,7 @@ class AlarmManager(object):
         for i, alarm_thread in enumerate(self.__alarm_threads):
             if alarm.id_ == alarm_thread.get_id():
                 # Already set as launched, check if should be stopped or edited
-                if (not alarm.enabled) or (not alarm.any_enabled_day()):
+                if alarm.is_active() is False:
                     self.__stop_alarm_thread(alarm.id_)
                 else:
                     alarm_thread.edit_alarm(alarm)
@@ -241,9 +264,8 @@ class AlarmManager(object):
                 break
         # Else only executes if no alarm with same ID was found
         else:
-            # Before thread is launched, check if the alarm is active and has
-            # repeat days selected
-            if (alarm.enabled is True) and (alarm.any_enabled_day() is True):
+            # Before thread is launched, check if the alarm is active
+            if alarm.is_active() is True:
                 alarm_thread = AlarmThread(alarm, self.__alarm_triggered)
                 self.__alarm_threads.append(alarm_thread)
                 alarm_thread.start()
@@ -282,7 +304,7 @@ class AlarmManager(object):
         for alarm_thread in self.__alarm_threads:
             alarm_thread.stop()
 
-        # Check that all threads have really stopped for a maximum period of 15s
+        # Check, for a max time of 15s, that all threads have really stopped
         milliseconds_passed = 0
         continue_trying = True
         while continue_trying and (milliseconds_passed < 15000):
@@ -324,7 +346,7 @@ class AlarmManager(object):
         running_counter = 0
         all_alarms = AlarmManager.get_all_alarms()
         for alarm in all_alarms:
-            if alarm.enabled is True and alarm.any_enabled_day() is True:
+            if alarm.is_active() is True:
                 # This alarm should be running
                 running_counter += 1
                 if self.is_alarm_running(alarm.id_) is False:

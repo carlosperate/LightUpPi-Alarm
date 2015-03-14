@@ -10,7 +10,6 @@
 #  get_all_alarms, get_number_of_alarms, get_all_enabled_alarms, get_alarm,
 #
 from __future__ import unicode_literals, absolute_import
-import io
 import mock
 import time
 import unittest
@@ -18,7 +17,6 @@ import threading
 from LightUpAlarm.AlarmDb import AlarmDb
 from LightUpAlarm.AlarmItem import AlarmItem
 from LightUpAlarm.AlarmManager import AlarmManager
-
 
 
 class AlarmManagerTestCase(unittest.TestCase):
@@ -113,6 +111,22 @@ class AlarmManagerTestCase(unittest.TestCase):
         delete_success = alarm_mgr.delete_all_alarms()
         self.assertTrue(delete_success)
         self.assertEqual(AlarmManager.get_number_of_alarms(), 0)
+
+    def test_get_all_active_alarms(self):
+        """ Test the get_all_active_alarms method. """
+        alarm_mgr = AlarmManager()
+        # First test with 5 active alarms
+        self.create_alarms(alarm_mgr)
+        active_alarms = AlarmManager.get_all_active_alarms()
+        self.assertEquals(len(active_alarms), 5)
+        # Deactivate a couple of alarms and try again
+        edit_success = alarm_mgr.edit_alarm(1, enabled=False)
+        self.assertTrue(edit_success)
+        edit_success = alarm_mgr.edit_alarm(
+            3, days=(False, False, False, False, False, False, False))
+        self.assertTrue(edit_success)
+        active_alarms = AlarmManager.get_all_active_alarms()
+        self.assertEquals(len(active_alarms), 3)
 
     @mock.patch('LightUpAlarm.AlarmManager.time.localtime')
     def test_get_next_alarm(self, mock_time):

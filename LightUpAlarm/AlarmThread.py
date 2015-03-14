@@ -57,9 +57,8 @@ class AlarmThread(threading.Thread):
         trigger any day, if so it then checks if this time is the alarm time.
         """
         while self.__run:
-            # If any of these conditions is false there is no alarm to alert
-            if (self.__alarm.enabled is True) and \
-               (self.__alarm.any_enabled_day() is True):
+            # Only check for the time if the Alarm is active
+            if self.__alarm.is_active() is True:
                 # Check if it is the alarm time
                 time_now = time.localtime(time.time())
                 if (self.__alarm.repeat[time_now.tm_wday] is True) and \

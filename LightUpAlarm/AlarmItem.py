@@ -273,9 +273,9 @@ class AlarmItem(object):
     #
     # member methods to retrieve specific data
     #
-    def any_enabled_day(self):
+    def any_day_enabled(self):
         """
-        Check if there are any repeat days enabled.
+        Checks if there are any repeat days enabled.
         :return: A boolean value indicating if an repeat weekday is activated.
         """
         any_enabled = False
@@ -283,6 +283,17 @@ class AlarmItem(object):
             if self.__repeat[day] is True:
                 any_enabled = True
         return any_enabled
+
+    def is_active(self):
+        """
+        Determines if the Alarm is 'active', meaning enabled and at least one
+        weekday set to repeat.
+        :return: Boolean indicating the 'active' state.
+        """
+        if self.enabled is True and self.any_day_enabled() is True:
+            return True
+        else:
+            return False
 
     #
     # member methods to calculate time

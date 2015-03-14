@@ -366,12 +366,12 @@ class AlarmItemTestCase(unittest.TestCase):
         self.assertEqual(str(test_alarm), out)
 
     def test_any_enabled_day(self):
-        """ Test any_enabled_day() returns False if all repeats are false. """
+        """ Test any_day_enabled() returns False if all repeats are false. """
         test_alarm = AlarmItem(
             9, 30, (True, False, False, True, False, False, True), True)
-        self.assertTrue(test_alarm.any_enabled_day())
+        self.assertTrue(test_alarm.any_day_enabled())
         test_alarm.repeat = (False, False, False, False, False, False, False)
-        self.assertFalse(test_alarm.any_enabled_day())
+        self.assertFalse(test_alarm.any_day_enabled())
 
 
 if __name__ == '__main__':
