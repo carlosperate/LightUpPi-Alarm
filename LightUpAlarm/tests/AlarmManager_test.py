@@ -7,7 +7,7 @@
 #
 # The following methods are basically a call to the AlarmDb class and do not
 # need to be tested:
-#  get_all_alarms, get_number_of_alarms, get_all_active_alarms, get_alarm,
+#  get_all_alarms, get_number_of_alarms, get_all_enabled_alarms, get_alarm,
 #
 from __future__ import unicode_literals, absolute_import
 import io
@@ -24,7 +24,7 @@ from LightUpAlarm.AlarmManager import AlarmManager
 class AlarmManagerTestCase(unittest.TestCase):
     """ Tests for AlarmManager class. """
 
-    def assert_alarm(self, alarm, alarm_id, hour, minute, days, active):
+    def assert_alarm(self, alarm, alarm_id, hour, minute, days, enabled):
         self.assertEqual(alarm.id_, alarm_id)
         self.assertEqual(alarm.hour, hour)
         self.assertEqual(alarm.minute, minute)
@@ -35,7 +35,7 @@ class AlarmManagerTestCase(unittest.TestCase):
         self.assertEqual(alarm.friday, days[4])
         self.assertEqual(alarm.saturday, days[5])
         self.assertEqual(alarm.sunday, days[6])
-        self.assertEqual(alarm.active, active)
+        self.assertEqual(alarm.enabled, enabled)
 
     def create_alarms(self, alarm_mgr):
         """ Deletes all alarms and creates 5 with different data. """
@@ -201,7 +201,7 @@ class AlarmManagerTestCase(unittest.TestCase):
     def test_set_alarm_thread(self):
         """
         Test that the __set_alarm_thread private method will only launch an
-        Alarm Thread if there is an active day and the active state is set.
+        Alarm Thread if there is an active alarm.
         Ensure the thread has been launched successfully.
         This test accesses private methods.
         """
@@ -217,14 +217,14 @@ class AlarmManagerTestCase(unittest.TestCase):
         self.assertFalse(launch_success)
         self.assertEqual(threading.activeCount(), numb_threads)
 
-        # Test active alarm with no repeats
+        # Test enabled alarm with no repeats
         alarm.repeat = (False, False, False, False, False, False, False)
-        alarm.active = True
+        alarm.enabled = True
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm)
         self.assertFalse(launch_success)
         self.assertEqual(threading.activeCount(), numb_threads)
 
-        # Test good alarm
+        # Test fully active alarm
         alarm.wednesday = True
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm)
         self.assertTrue(launch_success)
@@ -368,9 +368,9 @@ class AlarmManagerTestCase(unittest.TestCase):
         # Also edit the database entry for that alarm bypassing AlarmManager.
         alarm_bypass = \
             alarm_mgr._AlarmManager__alarm_threads[0]._AlarmThread__alarm
-        alarm_bypass.active = False
+        alarm_bypass.enabled = False
         alarm_id = alarm_bypass.id_
-        AlarmDb().edit_alarm(alarm_id, active=False)
+        AlarmDb().edit_alarm(alarm_id, enabled=False)
         check_result = alarm_mgr.check_threads_state()
         self.assertFalse(check_result)
         # Executing check_threads_state should have return false as there was
@@ -381,8 +381,8 @@ class AlarmManagerTestCase(unittest.TestCase):
         # Now the thread for alarm 'alarm_bypass' with ID 'alarm_id' has been
         # stopped, we can bypass AlarmManager again to activate it and check
         # if check_threads_state recovers again.
-        alarm_bypass.active = True
-        AlarmDb().edit_alarm(alarm_bypass.id_, active=True)
+        alarm_bypass.enabled = True
+        AlarmDb().edit_alarm(alarm_bypass.id_, enabled=True)
         check_result = alarm_mgr.check_threads_state()
         self.assertFalse(check_result)
         check_result = alarm_mgr.check_threads_state()

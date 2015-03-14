@@ -53,10 +53,10 @@ class AlarmDbTestCase(unittest.TestCase):
         hour = 13
         minute = 35
         days = (False, False, True, False, False, True, False)
-        active = False
+        enabled = False
 
         adh = AlarmDb(self.db_name)
-        test_alarm = AlarmItem(hour, minute, days, active)
+        test_alarm = AlarmItem(hour, minute, days, enabled)
         test_alarm.id_ = adh.add_alarm(test_alarm)
         retrieved_alarm = adh.get_alarm(test_alarm.id_)
         self.assertEqual(hour, retrieved_alarm.hour)
@@ -68,7 +68,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertEqual(days[4], retrieved_alarm.friday)
         self.assertEqual(days[5], retrieved_alarm.saturday)
         self.assertEqual(days[6], retrieved_alarm.sunday)
-        self.assertEqual(active, retrieved_alarm.active)
+        self.assertEqual(enabled, retrieved_alarm.enabled)
         #print(retrieved_alarm)
 
     def test_entry_error(self):
@@ -130,10 +130,10 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertEqual(number_of_alarms, 0)
         self.assertEqual(len(all_alarms), 0)
 
-    def test_get_actives(self):
+    def test_get_all_enable_alarms(self):
         """
-        Adds 5 alarms into the database, 3 active and 2 inactive. Checks the
-        active and inactive getters are working.
+        Adds 5 alarms into the database, 3 enabled and 2 disabled. Checks the
+        enabled and disabled getters are working.
         """
         adh = AlarmDb(self.db_name)
         adh.delete_all_alarms()
@@ -142,10 +142,10 @@ class AlarmDbTestCase(unittest.TestCase):
         adh.add_alarm(AlarmItem(15, 37, self.random_days, True))   # id 3
         adh.add_alarm(AlarmItem(16, 38, self.random_days, False))  # id 4
         adh.add_alarm(AlarmItem(17, 39, self.random_days, True))   # id 5
-        active_alarms = adh.get_all_active_alarms()
-        inactive_alarms = adh.get_all_inactive_alarms()
-        self.assertEqual(len(active_alarms), 3)
-        self.assertEqual(len(inactive_alarms), 2)
+        enabled_alarms = adh.get_all_enabled_alarms()
+        disabled_alarms = adh.get_all_disabled_alarms()
+        self.assertEqual(len(enabled_alarms), 3)
+        self.assertEqual(len(disabled_alarms), 2)
 
     def test_edit_alarm(self):
         """ Creates an alarm and edits it. """
@@ -168,7 +168,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertTrue(edited_alarm.friday)
         self.assertTrue(edited_alarm.saturday)
         self.assertTrue(edited_alarm.sunday)
-        self.assertFalse(edited_alarm.active)
+        self.assertFalse(edited_alarm.enabled)
 
     def test_edit_alarm_single(self):
         """
@@ -191,7 +191,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertTrue(edited_alarm.friday)
         self.assertFalse(edited_alarm.saturday)
         self.assertTrue(edited_alarm.sunday)
-        self.assertTrue(edited_alarm.active)
+        self.assertTrue(edited_alarm.enabled)
         # Test with opposite initial values
         alarm_test = AlarmItem(
             10, 20, (False, True, False, True, False, True, False), False)
@@ -208,7 +208,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertFalse(edited_alarm.friday)
         self.assertTrue(edited_alarm.saturday)
         self.assertFalse(edited_alarm.sunday)
-        self.assertFalse(edited_alarm.active)
+        self.assertFalse(edited_alarm.enabled)
 
 
 if __name__ == '__main__':

@@ -23,15 +23,15 @@ class AlarmItem(object):
     #
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
-                 active=True, alarm_id=None):
+                 enabled=True, alarm_id=None):
         """
         Constructor assigns the input data into the new alarm instance.
         First creates the private variables, then assigns values
         """
         # ID is only created at first save into db
         self.__id = None
-        # Indicates if the alarm is active or not
-        self.__active = False
+        # Indicates if the alarm is enabled or not
+        self.__enabled = False
         # Alarm time
         self.__minute = 0
         self.__hour = 0
@@ -49,7 +49,7 @@ class AlarmItem(object):
         self.hour = hour
         self.minute = minute
         self.repeat = days
-        self.active = active
+        self.enabled = enabled
         if alarm_id is not None:
             self.id_ = alarm_id
 
@@ -58,8 +58,8 @@ class AlarmItem(object):
         Converts the class instance data into a readable string format.
         :return: String with all the alarm data.
         """
-        ret_str = 'Alarm ID: %3d | Time: %02d:%02d | Active: %5s | Repeat: ' % \
-                  (self.id_, self.hour, self.minute, self.active)
+        ret_str = 'Alarm ID: %3d | Time: %02d:%02d | Enabled: %5s | Repeat: ' %\
+                  (self.id_, self.hour, self.minute, self.enabled)
         for day in self.__repeat:
             if self.__repeat[day] is True:
                 ret_str += "%s " % str(day)[:3]
@@ -88,23 +88,23 @@ class AlarmItem(object):
     id_ = property(__get_id, __set_id)
 
     #
-    # active accesor
+    # enabled accesor
     #
-    def __get_active(self):
-        return self.__active
+    def __get_enabled(self):
+        return self.__enabled
 
-    def __set_active(self, new_active):
+    def __set_enabled(self, new_enabled):
         """
-        Ensure new value is a boolean before setting the active state.
-        :param new_active: new active state for the alarm instance.
+        Ensure new value is a boolean before setting the enabled state.
+        :param new_enabled: new enabled state for the alarm instance.
         """
-        if isinstance(new_active, types.BooleanType):
-            self.__active = new_active
+        if isinstance(new_enabled, types.BooleanType):
+            self.__enabled = new_enabled
         else:
-            print('ERROR: Provided AlarmItem().active type is not a boolean' +
-                  ': %s!' % new_active, file=sys.stderr)
+            print('ERROR: Provided AlarmItem().enabled type is not a boolean' +
+                  ': %s!' % new_enabled, file=sys.stderr)
 
-    active = property(__get_active, __set_active)
+    enabled = property(__get_enabled, __set_enabled)
 
     #
     # minute accesor
@@ -171,7 +171,7 @@ class AlarmItem(object):
         """
         if len(new_repeat) == 7:
             for day in new_repeat:
-                if isinstance(day, types.BooleanType) is False:
+                if not isinstance(day, types.BooleanType):
                     print('ERROR: All items in the AlarmItem().repeat list ' +
                           'have to be Booleans!', file=sys.stderr)
                     break
@@ -273,16 +273,16 @@ class AlarmItem(object):
     #
     # member methods to retrieve specific data
     #
-    def any_active_day(self):
+    def any_enabled_day(self):
         """
-        Check if there are any repeat days active.
+        Check if there are any repeat days enabled.
         :return: A boolean value indicating if an repeat weekday is activated.
         """
-        any_active = False
+        any_enabled = False
         for day in self.__repeat:
             if self.__repeat[day] is True:
-                any_active = True
-        return any_active
+                any_enabled = True
+        return any_enabled
 
     #
     # member methods to calculate time
@@ -333,5 +333,5 @@ class AlarmItem(object):
                 (ref_day_minute > alarm_day_minute):
             return (one_day_minutes * 7) - ref_day_minute + alarm_day_minute
 
-        # Alarm has no active days
+        # Alarm has no enabled days
         return None

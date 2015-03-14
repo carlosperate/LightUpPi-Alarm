@@ -41,9 +41,9 @@ class AlarmItemTestCase(unittest.TestCase):
         alarm_test = AlarmItem(hour, minute, days)
         self.assertEqual(days, alarm_test.repeat)
 
-        # Check constructor with minimum arguments + repeat days + active
+        # Check constructor with minimum arguments + repeat days + enabled
         alarm_test = AlarmItem(hour, minute, days, False)
-        self.assertEqual(False, alarm_test.active)
+        self.assertEqual(False, alarm_test.enabled)
 
     def test_constructor_hour_min_loop_around(self):
         """
@@ -361,17 +361,17 @@ class AlarmItemTestCase(unittest.TestCase):
         test_alarm = AlarmItem(
             9, 30, (True, False, False, True, False, False, True), True)
         test_alarm.id_ = 10
-        out = 'Alarm ID:  10 | Time: 09:30 | Active:  True | Repeat: ' +\
+        out = 'Alarm ID:  10 | Time: 09:30 | Enabled:  True | Repeat: ' +\
               'Mon --- --- Thu --- --- Sun '
         self.assertEqual(str(test_alarm), out)
 
-    def test_any_active_day(self):
-        """ Test any_active_day() returns False if all repeats are false. """
+    def test_any_enabled_day(self):
+        """ Test any_enabled_day() returns False if all repeats are false. """
         test_alarm = AlarmItem(
             9, 30, (True, False, False, True, False, False, True), True)
-        self.assertTrue(test_alarm.any_active_day())
+        self.assertTrue(test_alarm.any_enabled_day())
         test_alarm.repeat = (False, False, False, False, False, False, False)
-        self.assertFalse(test_alarm.any_active_day())
+        self.assertFalse(test_alarm.any_enabled_day())
 
 
 if __name__ == '__main__':

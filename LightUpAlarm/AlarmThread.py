@@ -53,13 +53,13 @@ class AlarmThread(threading.Thread):
         """
         Infinite loop function to run until it is stopped by calling the stop()
         method. It sleeps for 5 seconds between iterations.
-        At each iteration it first determines if the alarm is active and set to
+        At each iteration it first determines if the alarm is enabled and set to
         trigger any day, if so it then checks if this time is the alarm time.
         """
         while self.__run:
             # If any of these conditions is false there is no alarm to alert
-            if (self.__alarm.active is True) and \
-               (self.__alarm.any_active_day() is True):
+            if (self.__alarm.enabled is True) and \
+               (self.__alarm.any_enabled_day() is True):
                 # Check if it is the alarm time
                 time_now = time.localtime(time.time())
                 if (self.__alarm.repeat[time_now.tm_wday] is True) and \
@@ -109,10 +109,10 @@ class AlarmThread(threading.Thread):
         # Only edit the alarm if it contains the same ID
         if alarm_item.id_ == self.__id == self.__alarm.id_:
             self.__alarm = alarm_item
-            sucess = True
+            success = True
         else:
             print('ERROR: Provided AlarmItem is not correct for this thread.\n'
                   + 'Provided Alarm ID: %s  |  Thread Alarm ID: %s !' %
                   (alarm_item.id_, self.__alarm.id_), file=sys.stderr)
-            sucess = False
-        return sucess
+            success = False
+        return success

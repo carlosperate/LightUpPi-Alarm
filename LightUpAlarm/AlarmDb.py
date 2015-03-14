@@ -17,7 +17,7 @@
 #   friday: Indicates if the alarm repeats every friday. Boolean.
 #   saturday: Indicates if the alarm repeats every saturday. Boolean.
 #   sunday: Indicates if the alarm repeats every sunday. Boolean.
-#   active: Indicates if the alarm is active (turned on). Boolean.
+#   enabled: Indicates if the alarm is enabled (turned on). Boolean.
 #
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
@@ -78,43 +78,43 @@ class AlarmDb(object):
                           (alarm['monday'], alarm['tuesday'],
                            alarm['wednesday'], alarm['thursday'],
                            alarm['friday'], alarm['saturday'], alarm['sunday']),
-                          alarm['active'], alarm['id']))
+                          alarm['enabled'], alarm['id']))
         return alarm_list
 
-    def get_all_active_alarms(self):
+    def get_all_enabled_alarms(self):
         """
-        Returns all the alarms with an active state in a list of OrderedDicts.
-        :return: List of AlarmItems containing all active alarms. Returns an
+        Returns all the alarms with an enabled state in a list of OrderedDicts.
+        :return: List of AlarmItems containing all enabled alarms. Returns an
                  empty list if there aren't any.
         """
         alarms_table = self.__connect()
         alarm_list = []
-        active_alarms = alarms_table.find(active=True)
-        for alarm in active_alarms:
+        enabled_alarms = alarms_table.find(enabled=True)
+        for alarm in enabled_alarms:
             alarm_list.append(
                 AlarmItem(alarm['hour'], alarm['minute'],
                           (alarm['monday'], alarm['tuesday'],
                            alarm['wednesday'], alarm['thursday'],
                            alarm['friday'], alarm['saturday'], alarm['sunday']),
-                          alarm['active'], alarm['id']))
+                          alarm['enabled'], alarm['id']))
         return alarm_list
 
-    def get_all_inactive_alarms(self):
+    def get_all_disabled_alarms(self):
         """
-        Returns all the alarms with an active state in a list of AlarmItems.
-        :return: List of AlarmItems containing all active alarms. Returns an
+        Returns all the alarms with an disabled state in a list of AlarmItems.
+        :return: List of AlarmItems containing all disabled alarms. Returns an
                  empty list if there aren't any.
         """
         alarms_table = self.__connect()
         alarm_list = []
-        active_alarms = alarms_table.find(active=False)
-        for alarm in active_alarms:
+        disabled_alarms = alarms_table.find(enabled=False)
+        for alarm in disabled_alarms:
             alarm_list.append(
                 AlarmItem(alarm['hour'], alarm['minute'],
                           (alarm['monday'], alarm['tuesday'],
                            alarm['wednesday'], alarm['thursday'],
                            alarm['friday'], alarm['saturday'], alarm['sunday']),
-                          alarm['active'], alarm['id']))
+                          alarm['enabled'], alarm['id']))
         return alarm_list
 
     def get_alarm(self, alarm_id):
@@ -135,7 +135,7 @@ class AlarmDb(object):
                               alarm_dict['wednesday'], alarm_dict['thursday'],
                               alarm_dict['friday'], alarm_dict['saturday'],
                               alarm_dict['sunday']),
-                             alarm_dict['active'], alarm_dict['id'])
+                             alarm_dict['enabled'], alarm_dict['id'])
 
     #
     # member functions to add data
@@ -147,7 +147,7 @@ class AlarmDb(object):
         hour: Integer to indicate the alarm hour.
         minute: Integer to indicate the alarm minute.
         days: 7-item list of booleans to indicate repeat weekdays.
-        active: Boolean to indicate alarm active state.
+        enabled: Boolean to indicate alarm enabled state.
         :return: Integer row primary key.
         """
         if not isinstance(alarm_item, AlarmItem):
@@ -161,14 +161,14 @@ class AlarmDb(object):
                  monday=alarm_item.monday, tuesday=alarm_item.tuesday,
                  wednesday=alarm_item.wednesday, thursday=alarm_item.thursday,
                  friday=alarm_item.friday, saturday=alarm_item.saturday,
-                 sunday=alarm_item.sunday, active=alarm_item.active))
+                 sunday=alarm_item.sunday, enabled=alarm_item.enabled))
         return key
 
     #
     # member functions to edit data
     #
     def edit_alarm(self, alarm_id, hour=None, minute=None, days=None,
-                   active=None):
+                   enabled=None):
         """
         Edits an alarm to the database with the new input data.
         Uses the input sanitation of the AlarmItem class before the data is set.
@@ -176,7 +176,7 @@ class AlarmDb(object):
         :param minute: Optional integer to indicate the new alarm minute.
         :param days: Optional 7-item list of booleans to indicate the new repeat
                      week days.
-        :param active: Optional boolean to indicate new alarm active state.
+        :param enabled: Optional boolean to indicate new alarm enabled state.
         :return: Boolean indicating the success of the 'edit' operation.
         """
         alarms_table = self.__connect()
@@ -210,11 +210,11 @@ class AlarmDb(object):
             if not individual_success:
                 success = False
 
-        # Parse active variable
-        if active is not None:
-            alarm_item = AlarmItem(0, 0, active=active)
+        # Parse enabled variable
+        if enabled is not None:
+            alarm_item = AlarmItem(0, 0, enabled=enabled)
             individual_success = alarms_table.update(
-                dict(id=alarm_id, active=alarm_item.active), ['id'])
+                dict(id=alarm_id, enabled=alarm_item.enabled), ['id'])
             if not individual_success:
                 success = False
 
@@ -242,8 +242,3 @@ class AlarmDb(object):
         alarms_table = self.__connect()
         success = alarms_table.delete()
         return success
-
-
-if __name__ == "__main__":
-    # Do nothing
-    pass
