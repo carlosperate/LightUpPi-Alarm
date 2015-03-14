@@ -10,12 +10,15 @@
 #  get_all_alarms, get_number_of_alarms, get_all_active_alarms, get_alarm,
 #
 from __future__ import unicode_literals, absolute_import
-import unittest
+import io
 import mock
 import time
+import unittest
 import threading
-from LightUpAlarm.AlarmManager import AlarmManager
+from LightUpAlarm.AlarmDb import AlarmDb
 from LightUpAlarm.AlarmItem import AlarmItem
+from LightUpAlarm.AlarmManager import AlarmManager
+
 
 
 class AlarmManagerTestCase(unittest.TestCase):
@@ -330,6 +333,86 @@ class AlarmManagerTestCase(unittest.TestCase):
             # This loop will never finish if the thread does not callback
             time.sleep(0.001)
         self.assertTrue(AlarmManagerTestCase.thread_alert)
+
+    def test_is_alarm_running(self):
+        """ Adds a couple of alarms and tests the is_alarm_running() method. """
+        time_now = time.localtime(time.time())
+        alarm_active = AlarmItem(
+            time_now.tm_hour -1 , time_now.tm_min,
+            (True, True, True, True, True, True, True), True, 96)
+        alarm_inactive = AlarmItem(
+            time_now.tm_hour -1 , time_now.tm_min,
+            (False, False, False, False, False, False, False), False, 86)
+        alarm_mgr = AlarmManager()
+        alarm_mgr.delete_all_alarms()
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm_active)
+        self.assertTrue(launch_success)
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(
+            alarm_inactive)
+        self.assertFalse(launch_success)
+        # Now everything is set up, test the is_alarm_running method
+        self.assertTrue(alarm_mgr.is_alarm_running(alarm_active.id_))
+        self.assertFalse(alarm_mgr.is_alarm_running(alarm_inactive.id_))
+
+    def test_check_threads_state(self):
+        """ Test almost all pathways of check_threads_state. """
+        alarm_mgr = AlarmManager()
+        self.create_alarms(alarm_mgr)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertTrue(check_result)
+
+        # Now that everything is working correctly, sneak around AlarmManager
+        # and edit a running thread by editing an AlarmItem using the
+        # AlarmThread internal reference to the AlarmItem instance (which does
+        # not do the extra checks for tracking like AlarmManager does).
+        # Also edit the database entry for that alarm bypassing AlarmManager.
+        alarm_bypass = \
+            alarm_mgr._AlarmManager__alarm_threads[0]._AlarmThread__alarm
+        alarm_bypass.active = False
+        alarm_id = alarm_bypass.id_
+        AlarmDb().edit_alarm(alarm_id, active=False)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertFalse(check_result)
+        # Executing check_threads_state should have return false as there was
+        # an issue, but if fixed correctly the second time should return true
+        check_result = alarm_mgr.check_threads_state()
+        self.assertTrue(check_result)
+
+        # Now the thread for alarm 'alarm_bypass' with ID 'alarm_id' has been
+        # stopped, we can bypass AlarmManager again to activate it and check
+        # if check_threads_state recovers again.
+        alarm_bypass.active = True
+        AlarmDb().edit_alarm(alarm_bypass.id_, active=True)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertFalse(check_result)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertTrue(check_result)
+
+        # Now that everything is working correctly once more, add extra thread
+        time_now = time.localtime(time.time())
+        alarm_test = AlarmItem(
+            time_now.tm_hour -1, time_now.tm_min,
+            (True, True, True, True, True, True, True), True, 96)
+        launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm_test)
+        self.assertTrue(launch_success)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertFalse(check_result)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertTrue(check_result)
+
+        # Now we stop a running thread bypassing AlarmManager public methods
+        alarm_mgr._AlarmManager__alarm_threads[0].stop()
+        while alarm_mgr._AlarmManager__alarm_threads[0].isAlive():
+            time.sleep(0.1)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertFalse(check_result)
+        check_result = alarm_mgr.check_threads_state()
+        self.assertTrue(check_result)
+
+        # To test the last path, which is less threads running than expected,
+        # we would need to kill a thread before running check_threads_state
+        # and then somehow stop the recovery of such thread. So for now, it is
+        # not tested.
 
 
 if __name__ == '__main__':
