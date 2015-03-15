@@ -73,7 +73,7 @@ class AlarmItem(object):
             valid_inputs = False
         if days is not None and instance.repeat != tuple(days):
             valid_inputs = False
-        if enabled is not enabled and instance.enabled != enabled:
+        if enabled is not None and instance.enabled != enabled:
             valid_inputs = False
         if alarm_id is not None and instance.id_ != alarm_id:
             valid_inputs = False

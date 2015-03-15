@@ -10,8 +10,10 @@
 #  get_all_alarms, get_number_of_alarms, get_all_enabled_alarms, get_alarm,
 #
 from __future__ import unicode_literals, absolute_import
+import io
 import mock
 import time
+import types
 import unittest
 import threading
 from LightUpAlarm.AlarmDb import AlarmDb
@@ -55,7 +57,7 @@ class AlarmManagerTestCase(unittest.TestCase):
         alarm_mgr.delete_all_alarms()
         add_success = alarm_mgr.add_alarm(  # id 1
             8, 30, (False, True, False, True, False, True, False), True)
-        self.assertTrue(add_success)
+        self.assertIsInstance(add_success, types.IntType)
         all_alarms = AlarmManager.get_all_alarms()
         latest = len(all_alarms) - 1
         self.assert_alarm(
@@ -65,9 +67,58 @@ class AlarmManagerTestCase(unittest.TestCase):
     def test_add_alarm_error(self):
         """ Adds an alarm incorrectly and check for errors. """
         alarm_mgr = AlarmManager()
-        add_success = alarm_mgr.add_alarm(  # id 1
-            8, 30, (False, True, False, True, False, True, False), True)
-        self.assertTrue(add_success)
+        # We capture stderr to stop unit test from printing all errors
+        # No need to check stderr as returning None is proof enough
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # Test hour
+            add_success = alarm_mgr.add_alarm(
+                26, 0, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                22.5, 0, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                '22', 0, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                -2, 0, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+
+            # Test minute
+            add_success = alarm_mgr.add_alarm(
+                22, 60, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                22, 35.5, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                22, '25', (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                22, -20, (False, True, False, True, False, True, False), True)
+            self.assertIsNone(add_success)
+
+            # Test days
+            add_success = alarm_mgr.add_alarm(
+                8, 30, (False, True, False, True, False, True, False, True), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                8, 30, (False, True, False, True, False, True), True)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                22, 0, (False, True, False, 'True', False, True, False), True)
+            self.assertIsNone(add_success)
+
+            # Test enabled
+            add_success = alarm_mgr.add_alarm(
+                8, 30, (False, True, False, True, False, True, False), -1)
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                8, 30, (False, True, False, True, False, True, False), '3')
+            self.assertIsNone(add_success)
+            add_success = alarm_mgr.add_alarm(
+                8, 30, (False, True, False, True, False, True, False), 2.3)
+            self.assertIsNone(add_success)
 
     def test_dummy_alarms(self):
         """
@@ -127,6 +178,10 @@ class AlarmManagerTestCase(unittest.TestCase):
         self.assertTrue(edit_success)
         active_alarms = AlarmManager.get_all_active_alarms()
         self.assertEquals(len(active_alarms), 3)
+        # Check it returns an empty list if no ative alarms
+        alarm_mgr.delete_all_alarms()
+        active_alarms = AlarmManager.get_all_active_alarms()
+        self.assertEqual(len(active_alarms), 0)
 
     @mock.patch('LightUpAlarm.AlarmManager.time.localtime')
     def test_get_next_alarm(self, mock_time):
@@ -314,6 +369,24 @@ class AlarmManagerTestCase(unittest.TestCase):
         delete_success = alarm_mgr._AlarmManager__stop_all_alarm_threads()
         self.assertTrue(delete_success)
         self.assertEqual(threading.activeCount(), numb_threads - 2)
+
+    def test_get_running_alarms(self):
+        """
+        Tests get_running_alarms returns a list of the running alarms (active
+        alarms with a running thread), or an empty list.
+        """
+        alarm_mgr = AlarmManager()
+        # All these alarms are active
+        self.create_alarms(alarm_mgr)
+        running_alarms = alarm_mgr.get_running_alarms()
+        self.assertGreater(len(running_alarms), 0)
+        alarm_mgr.edit_alarm(1, enabled=False)
+        alarm_mgr.edit_alarm(3, enabled=False)
+        self.assertEqual(
+            len(running_alarms) - 2, len(alarm_mgr.get_running_alarms()))
+        alarm_mgr.delete_all_alarms()
+        running_alarms = alarm_mgr.get_running_alarms()
+        self.assertEqual(len(running_alarms), 0)
 
     # Needed to be able to test the thread callback
     thread_alert = False

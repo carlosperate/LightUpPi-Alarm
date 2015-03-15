@@ -99,10 +99,13 @@ class AlarmManager(object):
         """
         active_alarms = AlarmManager.get_all_enabled_alarms()
         # Need to iterate backwards in order to remove items safely
-        for i in xrange(len(active_alarms) - 1, -1, -1):
-            if active_alarms[i].any_day_enabled() is False:
-                del active_alarms[i]
-        return active_alarms
+        if active_alarms:
+            for i in xrange(len(active_alarms) - 1, -1, -1):
+                if active_alarms[i].any_day_enabled() is False:
+                    del active_alarms[i]
+            return active_alarms
+        else:
+            return []
 
     @staticmethod
     def get_alarm(alarm_id):
@@ -149,15 +152,15 @@ class AlarmManager(object):
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
         :param enabled: Boolean to indicate the alarm enabled state.
-        :return: Boolean indicating the success of the 'edit' operation.
+        :return: Integer indicating the newly created alarm ID, or None if fail.
         """
         alarm = AlarmItem(hour, minute, days, enabled)
         if alarm is not None:
             alarm.id_ = AlarmDb().add_alarm(alarm)
             if alarm.id_ is not None:
                 self.__set_alarm_thread(alarm)
-                return True
-        return False
+                return alarm.id_
+        return None
 
     def load_dummy_alarms(self):
         """
@@ -340,11 +343,16 @@ class AlarmManager(object):
         return False
 
     def get_running_alarms(self):
+        """
+        Returns a list of all the running alarms (active alarms verified to be
+        running on their own thread).
+        :return: List of AlarmItems that are currently running.
+        """
         # self test and self recovery
         self.check_threads_state()
         alarm_list = []
         for alarm_thread in self.__alarm_threads:
-            alarm_list.append(AlarmManager.get_alarm(alarm_thread.get_id))
+            alarm_list.append(AlarmManager.get_alarm(alarm_thread.get_id()))
         return alarm_list
 
     def check_threads_state(self):
