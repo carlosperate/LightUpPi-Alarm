@@ -24,6 +24,16 @@ class AlarmItemTestCase(unittest.TestCase):
         self.assertEqual(alarm_test.saturday, days[5])
         self.assertEqual(alarm_test.sunday, days[6])
 
+    def assert_stderr(self, test_srderr, equal=False):
+        """ Asserts the stderr string and resets it for next test. """
+        if equal is True:
+            self.assertEqual(test_srderr.getvalue(), '')
+        else:
+            self.assertNotEqual(test_srderr.getvalue(), '')
+        test_srderr.truncate(0)
+        test_srderr.write('')
+        self.assertEqual(test_srderr.getvalue(), '')
+
     def test_constructor(self):
         """ Tests valid inputs to the constructor. """
         hour = 23
@@ -57,23 +67,28 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test = AlarmItem(23, 60)
             self.assertIsNone(alarm_test)
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
+            alarm_test = AlarmItem(23, -50)
+            self.assertIsNone(alarm_test)
+            self.assert_stderr(test_srderr)
 
             # Invalid hour
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test = AlarmItem(24, 59)
             self.assertIsNone(alarm_test)
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
+            alarm_test = AlarmItem(-12, 59)
+            self.assertIsNone(alarm_test)
+            self.assert_stderr(test_srderr)
 
             # Invalid hour and minute
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test = AlarmItem(24, 60)
             self.assertIsNone(alarm_test)
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
+            alarm_test = AlarmItem(-16, -45)
+            self.assertIsNone(alarm_test)
+            self.assert_stderr(test_srderr)
 
-    def test_hour_min_loop_around(self):
+    def test_hour_min_loop_range(self):
         """
         Test setting the hours and minutes accessors to not change values with
         invalid inputs.
@@ -87,19 +102,19 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.minute = 34
             self.assertEquals(alarm_test.hour, 12)
             self.assertEquals(alarm_test.minute, 34)
-            self.assertEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr, equal=True)
 
             # Invalid ints
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.minute = 60
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
+            alarm_test.minute = -1
+            self.assert_stderr(test_srderr)
             self.assertEquals(alarm_test.minute, 34)
 
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.hour = 24
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
+            alarm_test.hour = -2
+            self.assert_stderr(test_srderr)
             self.assertEquals(alarm_test.hour, 12)
 
     def test_hour_min_integers(self):
@@ -116,31 +131,19 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.hour = 12
             alarm_test.minute = 34
-            self.assertEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr, equal=True)
 
             # Float instead of integer
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.hour = 12.34
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
             alarm_test.minute = 34.56
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # String instead of integer
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.hour = 'minutes'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
             alarm_test.minute = 'hours'
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
     def test_repeat_list_strictness(self):
         """
@@ -167,21 +170,15 @@ class AlarmItemTestCase(unittest.TestCase):
             # Too many arguments
             alarm_test.repeat = (
                 False, True, True, False, False, False, False, False)
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Too few arguments
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.repeat = (False, True, True, False, False, False)
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Wrong arguments
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.repeat = (False, True, True, 0, False, False, True)
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
     def test_repeat_accessors_get(self):
         """
@@ -230,100 +227,58 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
 
             # Monday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.monday = 'monday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.monday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.monday = 2.3
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Tuesday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.tuesday = 'tuesday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.tuesday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.tuesday = 2.3
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Wednesday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.wednesday = 'wednesday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.wednesday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.wednesday = 2.3
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Thursday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.thursday = 'thursday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.thursday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.thursday = 2.3
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Friday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.friday = 'friday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.friday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.friday = 2.3
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Saturday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.saturday = 'saturday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.saturday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.saturday = 2.3
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
             # Sunday
-            test_srderr.truncate(0)
-            test_srderr.write('')
             alarm_test.sunday = 'sunday'
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.sunday = 1
-            self.assertNotEqual(test_srderr.getvalue(), '')
-            test_srderr.truncate(0)
-            test_srderr.write('')
+            self.assert_stderr(test_srderr)
             alarm_test.sunday = 2.3
 
     def test_id(self):
@@ -339,15 +294,14 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.id_ = 10
             self.assertEqual(test_srderr.getvalue(), '')
+
             # String instead of integer
             alarm_test.id_ = 'String'
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
+
             # Float instead of integer
-            test_srderr.truncate(0)
-            test_srderr.write('')
-            self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.id_ = 10.4
-            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assert_stderr(test_srderr)
 
     def test_time_to_alarm(self):
         """

@@ -119,11 +119,11 @@ class AlarmItem(object):
         Sets id value. Must be an integer.
         :param new_id: new ID for the alarm instance.
         """
-        if isinstance(new_id, types.IntType):
+        if isinstance(new_id, types.IntType) and new_id >= 0:
             self.__id = new_id
         else:
-            print('ERROR: Provided AlarmItem().id type is not an Integer' +
-                  ': %s!' % new_id, file=sys.stderr)
+            print('ERROR: Provided AlarmItem().id type is not a positive ' +
+                  'Integer: %s!' % new_id, file=sys.stderr)
 
     id_ = property(__get_id, __set_id)
 
@@ -158,11 +158,11 @@ class AlarmItem(object):
         :param new_minute: new alarm minutes for the alarm instance.
         """
         if isinstance(new_minute, types.IntType):
-            if new_minute < 60:
+            if 0 <= new_minute < 60:
                 self.__minute = new_minute
             else:
-                print('ERROR: Provided AlarmItem().minute is larger than 59' +
-                      ': %s!' % new_minute, file=sys.stderr)
+                print('ERROR: Provided AlarmItem().minute is not between 0 ' +
+                      'and 59: %s!' % new_minute, file=sys.stderr)
         else:
             print('ERROR: Provided AlarmItem().minute type is not an Integer' +
                   ': %s!' % new_minute, file=sys.stderr)
@@ -181,11 +181,11 @@ class AlarmItem(object):
         :param new_hour: new alarm hours for the alarm instance.
         """
         if isinstance(new_hour, types.IntType):
-            if new_hour < 24:
+            if 0 <= new_hour < 24:
                 self.__hour = new_hour
             else:
-                print('ERROR: Provided AlarmItem().hour is larger than 23' +
-                      ': %s!' % new_hour, file=sys.stderr)
+                print('ERROR: Provided AlarmItem().hour is not between 0 and ' +
+                      '23: %s!' % new_hour, file=sys.stderr)
         else:
             print('ERROR: Provided AlarmItem().hour type is not an Integer' +
                   ': %s!' % new_hour, file=sys.stderr)
