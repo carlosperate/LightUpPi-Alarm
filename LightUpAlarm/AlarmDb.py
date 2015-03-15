@@ -27,6 +27,7 @@ try:
 except ImportError:
     from AlarmItem import AlarmItem
 
+
 class AlarmDb(object):
     """ Creates and manages a Sqlite database to store and retrieve alarms. """
 
@@ -187,37 +188,52 @@ class AlarmDb(object):
         # Parse hour variable
         if hour is not None:
             alarm_item = AlarmItem(hour, 0)
-            individual_success = alarms_table.update(
-                dict(id=alarm_id, hour=alarm_item.hour), ['id'])
-            if not individual_success:
+            if alarm_item is not None:
+                individual_success = alarms_table.update(
+                    dict(id=alarm_id, hour=alarm_item.hour), ['id'])
+                if not individual_success:
+                    success = False
+            else:
                 success = False
 
         # Parse minute variable
         if minute is not None:
             alarm_item = AlarmItem(0, minute)
-            individual_success = alarms_table.update(
-                dict(id=alarm_id, minute=alarm_item.minute), ['id'])
-            if not individual_success:
+            if alarm_item is not None:
+                individual_success = alarms_table.update(
+                    dict(id=alarm_id, minute=alarm_item.minute), ['id'])
+                if not individual_success:
+                    success = False
+            else:
                 success = False
 
         # Parse days variable
         if days is not None:
             alarm_item = AlarmItem(0, 0, days=days)
-            individual_success = alarms_table.update(
-                dict(id=alarm_id, monday=alarm_item.monday,
-                     tuesday=alarm_item.tuesday, wednesday=alarm_item.wednesday,
-                     thursday=alarm_item.thursday, friday=alarm_item.friday,
-                     saturday=alarm_item.saturday, sunday=alarm_item.sunday),
-                ['id'])
-            if not individual_success:
+            if alarm_item is not None:
+                individual_success = alarms_table.update(
+                    dict(id=alarm_id, monday=alarm_item.monday,
+                         tuesday=alarm_item.tuesday,
+                         wednesday=alarm_item.wednesday,
+                         thursday=alarm_item.thursday,
+                         friday=alarm_item.friday,
+                         saturday=alarm_item.saturday,
+                         sunday=alarm_item.sunday),
+                    ['id'])
+                if not individual_success:
+                    success = False
+            else:
                 success = False
 
         # Parse enabled variable
         if enabled is not None:
             alarm_item = AlarmItem(0, 0, enabled=enabled)
-            individual_success = alarms_table.update(
-                dict(id=alarm_id, enabled=alarm_item.enabled), ['id'])
-            if not individual_success:
+            if alarm_item is not None:
+                individual_success = alarms_table.update(
+                    dict(id=alarm_id, enabled=alarm_item.enabled), ['id'])
+                if not individual_success:
+                    success = False
+            else:
                 success = False
 
         return success

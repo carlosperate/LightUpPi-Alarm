@@ -45,41 +45,67 @@ class AlarmItemTestCase(unittest.TestCase):
         alarm_test = AlarmItem(hour, minute, days, False)
         self.assertEqual(False, alarm_test.enabled)
 
-    def test_constructor_hour_min_loop_around(self):
+    def test_constructor_hour_min_range(self):
         """
-        Test constructor values for hours and minutes larger than 23 and 59
-        respectively.
+        Test constructor values for hours and minutes to produce a None object
+        if they are larger than 23 and 59 respectively.
         """
-        alarm_test = AlarmItem(24, 60)
-        self.assertTrue(alarm_test.minute < 60)
-        self.assertTrue(alarm_test.hour < 24)
+        # The accessor functions print to stderr if bad data is encountered, so
+        # we need to capture stderr to test it.
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # Invalid minute
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test = AlarmItem(23, 60)
+            self.assertIsNone(alarm_test)
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Invalid hour
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test = AlarmItem(24, 59)
+            self.assertIsNone(alarm_test)
+            self.assertNotEqual(test_srderr.getvalue(), '')
+
+            # Invalid hour and minute
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test = AlarmItem(24, 60)
+            self.assertIsNone(alarm_test)
+            self.assertNotEqual(test_srderr.getvalue(), '')
 
     def test_hour_min_loop_around(self):
         """
-        Test setting the hours and minutes values to larger than 23 and 59
-        respectively to obtain a valid value.
+        Test setting the hours and minutes accessors to not change values with
+        invalid inputs.
         """
-        alarm_test = AlarmItem(0, 0)
-        alarm_test.minute = 60
-        alarm_test.hour = 24
-        self.assertTrue(alarm_test.minute < 60)
-        self.assertTrue(alarm_test.minute == 0)
-        self.assertTrue(alarm_test.hour < 24)
-        self.assertTrue(alarm_test.hour == 0)
+        alarm_test = AlarmItem(0, 1)
+        # The accessor functions print to stderr if bad data is encountered, so
+        # we need to capture stderr to test it.
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.hour = 12
+            alarm_test.minute = 34
+            self.assertEquals(alarm_test.hour, 12)
+            self.assertEquals(alarm_test.minute, 34)
+            self.assertEqual(test_srderr.getvalue(), '')
 
-        alarm_test.minute = 120  # 0 + 60min + 60min
-        alarm_test.hour = 48     # 0 + 24h + 24h
-        self.assertTrue(alarm_test.minute == 0)
-        self.assertTrue(alarm_test.hour == 0)
+            # Invalid ints
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.minute = 60
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assertEquals(alarm_test.minute, 34)
 
-        alarm_test.minute = 212  # 32 + 60min + 60min + 60min
-        alarm_test.hour = 87     # 15 + 24h + 24h + 24h
-        self.assertTrue(alarm_test.minute == 32)
-        self.assertTrue(alarm_test.hour < 24)
+            test_srderr.truncate(0)
+            test_srderr.write('')
+            alarm_test.hour = 24
+            self.assertNotEqual(test_srderr.getvalue(), '')
+            self.assertEquals(alarm_test.hour, 12)
 
     def test_hour_min_integers(self):
         """
-        Test setting the hours and minutes values to non-integer values.
+        Test setting the hours and minutes values valid integers and non-integer
+        values.
         """
         alarm_test = AlarmItem(0, 0)
 

@@ -21,37 +21,76 @@ class AlarmItem(object):
     #
     # metaclass methods: constructor and print
     #
+    def __new__(cls, hour, minute,
+                days=(False, False, False, False, False, False, False),
+                enabled=True, alarm_id=None):
+        """
+        This is the class constructor. We need to initialise the class instance
+        here instead of in __init__ because the accessors input sanitation is
+        used to determine the validity of the given inputs. If invalid data is
+        inputted to the constructor it returns None instead of the instance.
+        :param cls: Class type
+        :param hour: Integer to indicate the alarm hour.
+        :param minute: Integer to indicate the alarm minute.
+        :param days: 7-item list of booleans to indicate repeat weekdays.
+        :param enabled: Boolean to indicate alarm enabled state.
+        :param alarm_id: Integer to indicate the Alarm ID
+        :return: instance of the AlarmItem class. Returns None if input data is
+                invalid.
+        """
+        instance = object.__new__(cls, hour, minute, days, enabled, alarm_id)
+        # ID is only created at first save into db
+        instance.__id = None
+        # Indicates if the alarm is enabled or not
+        instance.__enabled = False
+        # Alarm time
+        instance.__minute = 0
+        instance.__hour = 0
+        # Contains the days of the weeks that this alarm repeats
+        instance.__repeat = collections.OrderedDict()
+        instance.__repeat['Monday'] = False
+        instance.__repeat['Tuesday'] = False
+        instance.__repeat['Wednesday'] = False
+        instance.__repeat['Thursday'] = False
+        instance.__repeat['Friday'] = False
+        instance.__repeat['Saturday'] = False
+        instance.__repeat['Sunday'] = False
+
+        # Assigning values using accessors with input sanitation
+        instance.hour = hour
+        instance.minute = minute
+        instance.repeat = days
+        instance.enabled = enabled
+        if alarm_id is not None:
+            instance.id_ = alarm_id
+
+        # Now we check if the values have been set, if not, it means an input
+        # was invalid and the object should not be created.
+        valid_inputs = True
+        if instance.hour != hour:
+            valid_inputs = False
+        if instance.minute != minute:
+            valid_inputs = False
+        if days is not None and instance.repeat != tuple(days):
+            valid_inputs = False
+        if enabled is not enabled and instance.enabled != enabled:
+            valid_inputs = False
+        if alarm_id is not None and instance.id_ != alarm_id:
+            valid_inputs = False
+
+        if valid_inputs is True:
+            return instance
+        else:
+            return None
+
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
                  enabled=True, alarm_id=None):
         """
-        Constructor assigns the input data into the new alarm instance.
-        First creates the private variables, then assigns values
+        Any additional initialisation will go here. Nothing at the moment.
+        Keep in mind all data has already been initialised in __new__
         """
-        # ID is only created at first save into db
-        self.__id = None
-        # Indicates if the alarm is enabled or not
-        self.__enabled = False
-        # Alarm time
-        self.__minute = 0
-        self.__hour = 0
-        # Contains the days of the weeks that this alarm repeats
-        self.__repeat = collections.OrderedDict()
-        self.__repeat['Monday'] = False
-        self.__repeat['Tuesday'] = False
-        self.__repeat['Wednesday'] = False
-        self.__repeat['Thursday'] = False
-        self.__repeat['Friday'] = False
-        self.__repeat['Saturday'] = False
-        self.__repeat['Sunday'] = False
-
-        # Assigning values using accessors
-        self.hour = hour
-        self.minute = minute
-        self.repeat = days
-        self.enabled = enabled
-        if alarm_id is not None:
-            self.id_ = alarm_id
+        pass
 
     def __str__(self):
         """
@@ -115,13 +154,15 @@ class AlarmItem(object):
 
     def __set_minute(self, new_minute):
         """
-        Checks input is an integer and wraps around value to be between 0 - 59.
+        Checks input is an integer is a value between 0 - 59.
         :param new_minute: new alarm minutes for the alarm instance.
         """
         if isinstance(new_minute, types.IntType):
-            while new_minute >= 60:
-                new_minute %= 60
-            self.__minute = new_minute
+            if new_minute < 60:
+                self.__minute = new_minute
+            else:
+                print('ERROR: Provided AlarmItem().minute is larger than 59' +
+                      ': %s!' % new_minute, file=sys.stderr)
         else:
             print('ERROR: Provided AlarmItem().minute type is not an Integer' +
                   ': %s!' % new_minute, file=sys.stderr)
@@ -136,13 +177,15 @@ class AlarmItem(object):
 
     def __set_hour(self, new_hour):
         """
-        Checks input is an integer and wraps around value to be between 0 - 23.
+        Checks input is an integer and a value between 0 - 23.
         :param new_hour: new alarm hours for the alarm instance.
         """
         if isinstance(new_hour, types.IntType):
-            while new_hour >= 24:
-                new_hour %= 24
-            self.__hour = new_hour
+            if new_hour < 24:
+                self.__hour = new_hour
+            else:
+                print('ERROR: Provided AlarmItem().hour is larger than 23' +
+                      ': %s!' % new_hour, file=sys.stderr)
         else:
             print('ERROR: Provided AlarmItem().hour type is not an Integer' +
                   ': %s!' % new_hour, file=sys.stderr)

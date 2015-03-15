@@ -152,12 +152,12 @@ class AlarmManager(object):
         :return: Boolean indicating the success of the 'edit' operation.
         """
         alarm = AlarmItem(hour, minute, days, enabled)
-        alarm.id_ = AlarmDb().add_alarm(alarm)
-        if alarm.id_ is not None:
-            self.__set_alarm_thread(alarm)
-            return True
-        else:
-            return False
+        if alarm is not None:
+            alarm.id_ = AlarmDb().add_alarm(alarm)
+            if alarm.id_ is not None:
+                self.__set_alarm_thread(alarm)
+                return True
+        return False
 
     def load_dummy_alarms(self):
         """
@@ -404,8 +404,3 @@ class AlarmManager(object):
         if self.__alarm_callback is not None:
             self.__alarm_callback()
             print('This is an alarm ALERT!!! ')
-
-
-if __name__ == "__main__":
-    # Do nothing
-    pass
