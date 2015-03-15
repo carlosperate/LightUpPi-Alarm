@@ -58,8 +58,9 @@ class AlarmItem(object):
         Converts the class instance data into a readable string format.
         :return: String with all the alarm data.
         """
-        ret_str = 'Alarm ID: %3d | Time: %02d:%02d | Enabled: %5s | Repeat: ' %\
-                  (self.id_, self.hour, self.minute, self.enabled)
+        enabled = 'Yes' if self.enabled is True else 'No'
+        ret_str = 'Alarm ID: %3d | Time: %02d:%02d | Enabled: %3s | Repeat: ' %\
+                  (self.id_, self.hour, self.minute, enabled)
         for day in self.__repeat:
             if self.__repeat[day] is True:
                 ret_str += "%s " % str(day)[:3]

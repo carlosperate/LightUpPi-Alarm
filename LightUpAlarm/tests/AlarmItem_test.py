@@ -361,7 +361,7 @@ class AlarmItemTestCase(unittest.TestCase):
         test_alarm = AlarmItem(
             9, 30, (True, False, False, True, False, False, True), True)
         test_alarm.id_ = 10
-        out = 'Alarm ID:  10 | Time: 09:30 | Enabled:  True | Repeat: ' +\
+        out = 'Alarm ID:  10 | Time: 09:30 | Enabled: Yes | Repeat: ' +\
               'Mon --- --- Thu --- --- Sun '
         self.assertEqual(str(test_alarm), out)
 
