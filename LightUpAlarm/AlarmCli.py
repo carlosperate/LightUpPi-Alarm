@@ -81,7 +81,55 @@ class AlarmCli(cmd.Cmd):
         'hh mm enable_boolean days_to_reap'
         eg. '9 00 True Mon Fri'
         """
-        print "create alarm: %s %s %s" % (hour, minute, enabled)
+        words = alarm_str.split(' ')
+        try:
+            hour = int(words[0])
+        except ValueError:
+            print('First item must be a number indicating the time !')
+            return
+        try:
+            minute = int(words[1])
+        except ValueError:
+            print('First item must be a number indicating the time !')
+            return
+        if words[2] == 'enable' or words[2] == 'enabled':
+            enable = True
+        elif words[2] == 'disable' or words[2] == 'disabled':
+            enable = False
+        else:
+            print('Third item must indicate if the alarm will be "enable" or ' +
+                  '"disabled" !')
+            return
+        if words[3]:
+            if words[3].lower() == 'all':
+                repeats = (True, True, True, True, True, True, True)
+            else:
+                repeats = [False] * 7
+                for i in xrange(len(words[3:])):
+                    if words[i+3].lower() == 'mon':
+                        repeats[0] = True
+                    elif words[i+3].lower() == 'tue':
+                        repeats[1] = True
+                    elif words[i+3].lower() == 'wed':
+                        repeats[2] = True
+                    elif words[i+3].lower() == 'thu':
+                        repeats[3] = True
+                    elif words[i+3].lower() == 'fri':
+                        repeats[4] = True
+                    elif words[i+3].lower() == 'sat':
+                        repeats[5] = True
+                    elif words[i+3].lower() == 'sun':
+                        repeats[6] = True
+        else:
+            repeats = (False, False, False, False, False, False, False)
+
+        alarm_id = self.alarm_mgr.add_alarm(hour, minute, repeats, enable)
+        if alarm_id is not None:
+            self.show_header_only()
+            print('\nCreated Alarm:\n' +
+                  '----------------------------------------' +
+                  '----------------------------------------\n' +
+                  '%s' % AlarmManager.get_alarm(alarm_id))
 
     def do_edit(self, edit_str):
         """
