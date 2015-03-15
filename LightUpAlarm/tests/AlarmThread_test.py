@@ -14,8 +14,17 @@ import io
 import time
 import mock
 import unittest
-from LightUpAlarm.AlarmItem import AlarmItem
-from LightUpAlarm.AlarmThread import AlarmThread
+try:
+    from LightUpAlarm.AlarmItem import AlarmItem
+    from LightUpAlarm.AlarmThread import AlarmThread
+except ImportError:
+    import os
+    import sys
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    package_dir = os.path.dirname(os.path.dirname(file_dir))
+    sys.path.insert(0, package_dir)
+    from LightUpAlarm.AlarmItem import AlarmItem
+    from LightUpAlarm.AlarmThread import AlarmThread
 
 
 class AlarmThreadTestCase(unittest.TestCase):

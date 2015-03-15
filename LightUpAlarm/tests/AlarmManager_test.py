@@ -16,9 +16,19 @@ import time
 import types
 import unittest
 import threading
-from LightUpAlarm.AlarmDb import AlarmDb
-from LightUpAlarm.AlarmItem import AlarmItem
-from LightUpAlarm.AlarmManager import AlarmManager
+try:
+    from LightUpAlarm.AlarmDb import AlarmDb
+    from LightUpAlarm.AlarmItem import AlarmItem
+    from LightUpAlarm.AlarmManager import AlarmManager
+except ImportError:
+    import os
+    import sys
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    package_dir = os.path.dirname(os.path.dirname(file_dir))
+    sys.path.insert(0, package_dir)
+    from LightUpAlarm.AlarmDb import AlarmDb
+    from LightUpAlarm.AlarmItem import AlarmItem
+    from LightUpAlarm.AlarmManager import AlarmManager
 
 
 class AlarmManagerTestCase(unittest.TestCase):

@@ -7,9 +7,17 @@
 #
 from __future__ import unicode_literals, absolute_import
 import unittest
-import os.path
-from LightUpAlarm.AlarmDb import AlarmDb
-from LightUpAlarm.AlarmItem import AlarmItem
+import os
+try:
+    from LightUpAlarm.AlarmDb import AlarmDb
+    from LightUpAlarm.AlarmItem import AlarmItem
+except ImportError:
+    import sys
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    package_dir = os.path.dirname(os.path.dirname(file_dir))
+    sys.path.insert(0, package_dir)
+    from LightUpAlarm.AlarmDb import AlarmDb
+    from LightUpAlarm.AlarmItem import AlarmItem
 
 
 class AlarmDbTestCase(unittest.TestCase):
