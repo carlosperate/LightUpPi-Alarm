@@ -100,8 +100,8 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.hour = 12
             alarm_test.minute = 34
-            self.assertEquals(alarm_test.hour, 12)
-            self.assertEquals(alarm_test.minute, 34)
+            self.assertEqual(alarm_test.hour, 12)
+            self.assertEqual(alarm_test.minute, 34)
             self.assert_stderr(test_srderr, equal=True)
 
             # Invalid ints
@@ -109,13 +109,16 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.minute = -1
             self.assert_stderr(test_srderr)
-            self.assertEquals(alarm_test.minute, 34)
+            self.assertEqual(alarm_test.minute, 34)
 
             alarm_test.hour = 24
             self.assert_stderr(test_srderr)
             alarm_test.hour = -2
             self.assert_stderr(test_srderr)
-            self.assertEquals(alarm_test.hour, 12)
+            self.assertEqual(alarm_test.hour, 12)
+
+            self.assertEqual(alarm_test.hour, 12)
+            self.assertEqual(alarm_test.minute, 34)
 
     def test_hour_min_integers(self):
         """
@@ -145,6 +148,9 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.minute = 'hours'
             self.assert_stderr(test_srderr)
 
+            self.assertEqual(alarm_test.hour, 12)
+            self.assertEqual(alarm_test.minute, 34)
+
     def test_repeat_list_strictness(self):
         """
         Test that the repeat list of booleans is filtered and catches invalid
@@ -165,20 +171,24 @@ class AlarmItemTestCase(unittest.TestCase):
             # First ensure that successful set does not write to stderr
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.repeat = valid_days
+            self.assertEqual(alarm_test.repeat, valid_days)
             self.assertEqual(test_srderr.getvalue(), '')
 
             # Too many arguments
             alarm_test.repeat = (
-                False, True, True, False, False, False, False, False)
+                False, False, False, False, False, False, False, False)
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.repeat, valid_days)
 
             # Too few arguments
-            alarm_test.repeat = (False, True, True, False, False, False)
+            alarm_test.repeat = (True, True, True, True, True, True)
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.repeat, valid_days)
 
             # Wrong arguments
-            alarm_test.repeat = (False, True, True, 0, False, False, True)
+            alarm_test.repeat = (True, True, True, 0, True, True, True)
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.repeat, valid_days)
 
     def test_repeat_accessors_get(self):
         """
@@ -233,6 +243,7 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.monday = 2.3
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.monday, days[0])
 
             # Tuesday
             alarm_test.tuesday = 'tuesday'
@@ -241,6 +252,7 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.tuesday = 2.3
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.tuesday, days[1])
 
             # Wednesday
             alarm_test.wednesday = 'wednesday'
@@ -249,6 +261,7 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.wednesday = 2.3
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.wednesday, days[2])
 
             # Thursday
             alarm_test.thursday = 'thursday'
@@ -257,6 +270,7 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.thursday = 2.3
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.thursday, days[3])
 
             # Friday
             alarm_test.friday = 'friday'
@@ -265,6 +279,7 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.friday = 2.3
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.friday, days[4])
 
             # Saturday
             alarm_test.saturday = 'saturday'
@@ -273,6 +288,7 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assert_stderr(test_srderr)
             alarm_test.saturday = 2.3
             self.assert_stderr(test_srderr)
+            self.assertEqual(alarm_test.saturday, days[5])
 
             # Sunday
             alarm_test.sunday = 'sunday'
@@ -280,6 +296,7 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.sunday = 1
             self.assert_stderr(test_srderr)
             alarm_test.sunday = 2.3
+            self.assertEqual(alarm_test.sunday, days[6])
 
     def test_id(self):
         """ Tests the id member variable accessors filters non-integers. """
@@ -294,13 +311,21 @@ class AlarmItemTestCase(unittest.TestCase):
             self.assertEqual(test_srderr.getvalue(), '')
             alarm_test.id_ = 10
             self.assertEqual(test_srderr.getvalue(), '')
+            self.assertEqual(alarm_test.id_, 10)
+
+            # Negative integer instead of positive integer
+            alarm_test.id_ = -2
+            self.assertEqual(alarm_test.id_, 10)
+            self.assert_stderr(test_srderr)
 
             # String instead of integer
             alarm_test.id_ = 'String'
+            self.assertEqual(alarm_test.id_, 10)
             self.assert_stderr(test_srderr)
 
             # Float instead of integer
             alarm_test.id_ = 10.4
+            self.assertEqual(alarm_test.id_, 10)
             self.assert_stderr(test_srderr)
 
     def test_time_to_alarm(self):
