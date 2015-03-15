@@ -11,9 +11,14 @@ from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import time
 import operator
-from LightUpAlarm.AlarmDb import AlarmDb
-from LightUpAlarm.AlarmItem import AlarmItem
-from LightUpAlarm.AlarmThread import AlarmThread
+try:
+    from LightUpAlarm.AlarmDb import AlarmDb
+    from LightUpAlarm.AlarmItem import AlarmItem
+    from LightUpAlarm.AlarmThread import AlarmThread
+except ImportError:
+    from AlarmDb import AlarmDb
+    from AlarmItem import AlarmItem
+    from AlarmThread import AlarmThread
 
 
 class AlarmManager(object):
@@ -333,6 +338,14 @@ class AlarmManager(object):
             if alarm_thread.get_id() == alarm_id:
                 return alarm_thread.isAlive()
         return False
+
+    def get_running_alarms(self):
+        # self test and self recovery
+        self.check_threads_state()
+        alarm_list = []
+        for alarm_thread in self.__alarm_threads:
+            alarm_list.append(AlarmManager.get_alarm(alarm_thread.get_id))
+        return alarm_list
 
     def check_threads_state(self):
         """

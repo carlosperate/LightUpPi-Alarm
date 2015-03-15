@@ -22,8 +22,10 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import dataset
-from LightUpAlarm.AlarmItem import AlarmItem
-
+try:
+    from LightUpAlarm.AlarmItem import AlarmItem
+except ImportError:
+    from AlarmItem import AlarmItem
 
 class AlarmDb(object):
     """ Creates and manages a Sqlite database to store and retrieve alarms. """
