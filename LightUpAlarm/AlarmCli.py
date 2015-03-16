@@ -29,8 +29,9 @@ class AlarmCli(cmd.Cmd):
     The Pydoc comments do not include the 'param' and 'return' data because
     the class uses these comments for the command line help menu.
     """
-    prompt = '\n(command): '
-    doc_header = 'Available commands (for more info type "help <command>")'
+    # Class variable for a full line (80 chars) of dashes
+    dashes_line = '----------------------------------------' + \
+                  '----------------------------------------'
 
     #
     # metaclass methods
@@ -41,8 +42,11 @@ class AlarmCli(cmd.Cmd):
         self.alarm_mgr = AlarmManager()
 
     #
-    # parent class methods
+    # parent class methods and class variables
     #
+    prompt = '(command): '
+    doc_header = 'Available commands (for more info type "help <command>")'
+
     def preloop(self):
         """ Gets executed before the run loop. """
         self.show_header_only()
@@ -56,19 +60,26 @@ class AlarmCli(cmd.Cmd):
         self.show_header_only()
         return cmd.Cmd.onecmd(self, s)
 
+    def postcmd(self, stop, line):
+        print('\n')
+        return cmd.Cmd.postcmd(self, stop, line)
+
     #
     # command methods
     #
     def do_alarms(self, empty_str):
-        """ Displays all the alarms. """
+        """Help alarms:
+        Displays all the alarms.
+        """
+        # Already displayed with the header
         pass
 
     def do_active(self, empty_str):
-        """ Displays the active alarms currently running. """
+        """Help active:
+        Displays the active alarms currently running.
+        """
         running_alarms = self.alarm_mgr.get_running_alarms()
-        print('\nActive alarms running:\n' +
-              '----------------------------------------' +
-              '----------------------------------------')
+        print('Active alarms running:\n' + AlarmCli.dashes_line)
         if not running_alarms:
             print('\tThere are not active alarms running.')
         else:
@@ -76,33 +87,56 @@ class AlarmCli(cmd.Cmd):
                 print(alarm)
 
     def do_add(self, alarm_str):
-        """
+        """Help add:
         Add an alarm using the format (days follow the 3 letter format):
-        'hh mm enable_boolean days_to_reap'
-        eg. '9 00 True Mon Fri'
+        'hh mm <enabled/disabled> <days to repeat>'
+        eg. 'add 9 00 enabled Mon Fri'
+            'add 10 30 disabled sat sun'
+            'add 7 10 enabled all'
+            'add 22 55 disabled'
         """
         words = alarm_str.split(' ')
+        # First check for enough items
+        if len(words) < 2:
+            print('Not enough data provided, for information about this ' +
+                  'command use the "help add"\ncommand !')
+            return
+
+        # First word is the hour, mandatory
         try:
             hour = int(words[0])
         except ValueError:
             print('First item must be a number indicating the time !')
             return
+
+        # Second word is the minute, mandatory
         try:
             minute = int(words[1])
         except ValueError:
             print('First item must be a number indicating the time !')
             return
-        if words[2] == 'enable' or words[2] == 'enabled':
-            enable = True
-        elif words[2] == 'disable' or words[2] == 'disabled':
-            enable = False
+
+        # Third word is the enable, optional
+        if len(words) > 2:
+            if words[2].lower() == 'enable' or words[2].lower() == 'enabled':
+                enable = True
+            elif words[2].lower() == 'disable' or \
+                    words[2].lower() == 'disabled':
+                enable = False
+            else:
+                print('Third item must indicate if the alarm will be ' +
+                      '"enable" or "disabled" !')
+                return
         else:
-            print('Third item must indicate if the alarm will be "enable" or ' +
-                  '"disabled" !')
-            return
-        if words[3]:
+            # Defaults to enabled
+            enable = True
+
+        # Following words are the repeat days, optional
+        if len(words) > 3:
             if words[3].lower() == 'all':
                 repeats = (True, True, True, True, True, True, True)
+            elif words[3].lower() == 'none':
+                repeats = (False, False, False, False, False, False, False)
             else:
                 repeats = [False] * 7
                 for i in xrange(len(words[3:])):
@@ -120,42 +154,156 @@ class AlarmCli(cmd.Cmd):
                         repeats[5] = True
                     elif words[i+3].lower() == 'sun':
                         repeats[6] = True
+                    else:
+                        print('Repeat day not recognised, use the' +
+                              ' "help edit" command for more information!')
+                        return
         else:
-            repeats = (False, False, False, False, False, False, False)
+            # Defaults to all days enabled
+            repeats = (True, True, True, True, True, True, True)
 
+        # Create the alarm and inform the user
         alarm_id = self.alarm_mgr.add_alarm(hour, minute, repeats, enable)
         if alarm_id is not None:
             self.show_header_only()
-            print('\nCreated Alarm:\n' +
-                  '----------------------------------------' +
-                  '----------------------------------------\n' +
-                  '%s' % AlarmManager.get_alarm(alarm_id))
+            print('Created Alarm:\n' + AlarmCli.dashes_line +
+                  '\n%s' % AlarmManager.get_alarm(alarm_id))
+        else:
+            print('There was a problem creating the alarm.')
 
     def do_edit(self, edit_str):
-        """
+        """Help edit command:
         Edit an alarm using the following format:
-        'id attribute new_value"
-        eg. '1 enable False'
-            '2 monday true'
-            '3 hour 9'
+        'edit <alarm ID> <attribute> <new value>'
+        eg. 'edit <alarm ID> <attribute> <new value>'
+            'edit 3 hour 9'
+            'edit 4 minute 30'
+            'edit 7 enabled no'
+            'edit 1 repeat mon fri'
         """
-        pass
+        origianl_alarm_str = ''
+        words = edit_str.split(' ')
+        # First check for enough items
+        if len(words) < 3:
+            print('Not enough data provided, for information about this ' +
+                  'command use the "help edit"\ncommand !')
+            return
+
+        # First word is the Alarm ID
+        try:
+            alarm_id = int(words[0])
+        except ValueError:
+            print('First item must be a the ID number of the alarm to edit!')
+            return
+
+        # Capture the orignal alarm string for later comparison
+        origianl_alarm_str = str(self.alarm_mgr.get_alarm(alarm_id))
+
+        # Second word is the attribute to change, the third word parsed
+        # inmediatly after each second word option.
+        # Hours
+        if words[1].lower() == 'hour' or words[2] == 'hours':
+            try:
+                hour = int(words[2])
+            except ValueError:
+                print('To edit the hour it must be followed a valid number !')
+                return
+            self.alarm_mgr.edit_alarm(alarm_id, hour=hour)
+        # Minutes
+        elif words[1].lower() == 'minute' or words[2] == 'minutes':
+            try:
+                minute = int(words[2])
+            except ValueError:
+                print('To edit the minute it must be followed a valid number !')
+                return
+            self.alarm_mgr.edit_alarm(alarm_id, minute=minute)
+        # Enable
+        elif words[1].lower() == 'enable' or words[1] == 'enabled':
+            if words[2].lower() == 'yes':
+                self.alarm_mgr.edit_alarm(alarm_id, enabled=True)
+            elif words[2].lower() == 'no':
+                self.alarm_mgr.edit_alarm(alarm_id, enabled=False)
+            else:
+                print('To edit the enable it must be followed by "yes" or ' +
+                      '"No" !')
+                return
+        # Disable (should not really be an option, but accepted)
+        elif words[1].lower() == 'disable' or words[1] == 'disabled':
+            if words[2].lower() == 'yes':
+                self.alarm_mgr.edit_alarm(alarm_id, enabled=False)
+            elif words[2].lower() == 'no':
+                self.alarm_mgr.edit_alarm(alarm_id, enabled=True)
+            else:
+                print('To edit the enable it must be followed by "yes" or ' +
+                      '"No" !')
+                return
+        # Days
+        elif words[1].lower() == 'repeat':
+            if words[2].lower() == 'all':
+                repeats = (True, True, True, True, True, True, True)
+            elif words[2].lower() == 'none':
+                repeats = (False, False, False, False, False, False, False)
+            else:
+                repeats = [False] * 7
+                for i in xrange(len(words[2:])):
+                    if words[i+2].lower() == 'mon':
+                        repeats[0] = True
+                    elif words[i+2].lower() == 'tue':
+                        repeats[1] = True
+                    elif words[i+2].lower() == 'wed':
+                        repeats[2] = True
+                    elif words[i+2].lower() == 'thu':
+                        repeats[3] = True
+                    elif words[i+2].lower() == 'fri':
+                        repeats[4] = True
+                    elif words[i+2].lower() == 'sat':
+                        repeats[5] = True
+                    elif words[i+2].lower() == 'sun':
+                        repeats[6] = True
+                    else:
+                        print('Repeat day of the week not recognised, use the' +
+                              ' "help edit" command for more information !')
+                        return
+            self.alarm_mgr.edit_alarm(alarm_id, days=repeats)
+        else:
+            # Invalid keyword
+            print('Incorrect data provided, for information about this ' +
+                  'command use the "help edit"\ncommand !')
+            return
+
+        # If this point has been reached, an success edit has been carried
+        self.show_header_only()
+        print(('Edited Alarm %s:\n' % alarm_id) + AlarmCli.dashes_line +
+              '\nOriginal:\n' + origianl_alarm_str +
+              '\n\nNew:\n%s' % self.alarm_mgr.get_alarm(alarm_id))
 
     def do_delete(self, alarm_id_string):
         """
-        Delete an alarm identified by its id, eg:
+        Delete an alarm identified by its id, or all the alarms. Eg.:
         'delete 3'
+        'delete all'
         """
-        try:
-            alarm_id = int(alarm_id_string)
-        except ValueError:
-            print('After "delete" there must be a number indicating ' +
-                  'the Alarm ID to be deleted !')
-            return
-        success = self.alarm_mgr.delete_alarm(alarm_id)
+        if alarm_id_string == 'all':
+            success = self.alarm_mgr.delete_all_alarms()
+            if success is True:
+                self.show_header_only()
+                print('All alarms have been deleted !')
+        else:
+            try:
+                alarm_id = int(alarm_id_string)
+            except ValueError:
+                print('After "delete" there must be a number indicating ' +
+                      'the Alarm ID to be deleted !')
+                return
+            alarm_string = str(AlarmManager.get_alarm(alarm_id))
+            success = self.alarm_mgr.delete_alarm(alarm_id)
+            if success is True:
+                self.show_header_only()
+                print('Alarm ID %s has been deleted:\n' % alarm_id +
+                      AlarmCli.dashes_line + '\n%s' % alarm_string)
+
         if not success:
-            print('The Alarm could not be deleted.')
-        print('')  # Extra new line
+            print('Alarm/s "%s" could not be deleted.' % alarm_id_string)
 
     def do_exit(self, empty_str):
         """ Exists the LightUp Alarm program. """
@@ -165,31 +313,36 @@ class AlarmCli(cmd.Cmd):
     # Command line interface methods
     #
     def show_header_only(self):
+        # First cleat the creen
         if os.name == 'nt':
             os.system("cls")
         else:
             os.system('clear')
+
+        # Then print the header
+        empty_line = '=                                       ' + \
+                     '                                       =\n'
         print('========================================' +
-              '========================================\n' +
-              '=                               LightUp ' +
-              'Alarm                                  =\n' +
-              '=                                       ' +
-              '                                       =\n' +
-              '= Use the "help" command for information' +
-              ' about how to use this program.        =\n' +
+              '========================================\n' + empty_line +
+              '=                              LightUpPi' +
+              ' Alarm                                 =\n' +
+              empty_line + AlarmCli.dashes_line + '\n' + empty_line +
+              '=    Use the "help" command for informat' +
+              'ion about how to use this program.     =\n' + empty_line +
+              '=    This program must remain open for t' +
+              'he alarms to be active and running.    =\n' + empty_line +
               '========================================' +
               '========================================')
-        # Display the alarms below header
+
+        # And finally, display the alarms below the header
         all_alarms = self.alarm_mgr.get_all_alarms()
-        print('\n\nAlarms:\n' +
-              '----------------------------------------' +
-              '----------------------------------------')
+        print('\n\nAlarms:\n' + AlarmCli.dashes_line)
         if not all_alarms:
             print('\tThere are not saved alarms.')
         else:
             for alarm in all_alarms:
                 print(alarm)
-        print('')  # Extra new line
+        print('\n')  # Empty line for visual spacing
 
 
 #

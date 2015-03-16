@@ -84,4 +84,4 @@ target/
 alarmdatabase.db
 
 # Unit test database
-AlarmDbHelper_test_db.db
+AlarmDb_test_db.db
