@@ -373,7 +373,12 @@ class AlarmCli(cmd.Cmd):
             time.sleep(float(random.randint(1, 100)) / 1000.0)
         # Should be safe now
         self.callback_running = True
-        print('\n\nRING RING RING!!!!\n')
+        print('\n\nRING RING RING!!!!')
+        print('\a')  # Request terminal to beep
+        time.sleep(0.8)
+        print('\a')  # Request terminal to beep
+        time.sleep(0.8)
+        print('\a')  # Request terminal to beep
         if self.callback is not None:
             self.callback()
         # print without a new line, using sys to work on python 2 and 3
