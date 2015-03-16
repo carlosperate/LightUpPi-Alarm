@@ -266,7 +266,7 @@ class AlarmManager(object):
                     # It is meant to be up and running, check that it is
                     if alarm_thread.isAlive() is False:
                         self.__alarm_threads[i] = \
-                            AlarmThread(alarm, self.__alarm_triggered)
+                            AlarmThread(alarm, self.__alarm_callback)
                         self.__alarm_threads[i].start()
                     thread_up = alarm_thread.isAlive()
                 break
@@ -274,7 +274,7 @@ class AlarmManager(object):
         else:
             # Before thread is launched, check if the alarm is active
             if alarm.is_active() is True:
-                alarm_thread = AlarmThread(alarm, self.__alarm_triggered)
+                alarm_thread = AlarmThread(alarm, self.__alarm_callback)
                 self.__alarm_threads.append(alarm_thread)
                 alarm_thread.start()
                 thread_up = alarm_thread.isAlive()
@@ -397,18 +397,3 @@ class AlarmManager(object):
                       file=sys.stderr)
 
         return previously_correct
-
-    #
-    # other member methods
-    #
-    def __alarm_triggered(self):
-        """
-        This method is sent as a callback to each Alarm threads. It is meant to
-        be executed when the alarm alert is raised.
-        It executes the callback indicated on AlertManger constructor.
-        :return:
-        """
-        # run AlertManager callback event
-        if self.__alarm_callback is not None:
-            self.__alarm_callback()
-            print('This is an alarm ALERT!!! ')

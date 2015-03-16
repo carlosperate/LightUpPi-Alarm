@@ -17,6 +17,8 @@ from __future__ import unicode_literals, absolute_import
 import os
 import cmd
 import sys
+import time
+import random
 try:
     from LightUpAlarm.AlarmManager import AlarmManager
 except ImportError:
@@ -36,10 +38,15 @@ class AlarmCli(cmd.Cmd):
     #
     # metaclass methods
     #
-    def __init__(self):
-        """ Instance constructor. """
+    def __init__(self, callback=None):
+        """
+        Instance constructor.
+        Creates an AlarmManager instance and sets the alarm alert callback.
+        """
         cmd.Cmd.__init__(self)
-        self.alarm_mgr = AlarmManager()
+        self.callback = callback
+        self.callback_running = False
+        self.alarm_mgr = AlarmManager(self.alarm_callback)
 
     #
     # parent class methods and class variables
@@ -61,6 +68,10 @@ class AlarmCli(cmd.Cmd):
         return cmd.Cmd.onecmd(self, s)
 
     def postcmd(self, stop, line):
+        """
+        Runs after the command is executed. Overwritten to add a couple of blank
+        lines before the command input is displayed. Used for visual spacing.
+        """
         print('\n')
         return cmd.Cmd.postcmd(self, stop, line)
 
@@ -313,6 +324,11 @@ class AlarmCli(cmd.Cmd):
     # Command line interface methods
     #
     def show_header_only(self):
+        """
+        Clears the screen and displays the application header with the current
+        alarms.
+        :return: All outputs for this method go straight to the stdout
+        """
         # First cleat the creen
         if os.name == 'nt':
             os.system("cls")
@@ -344,9 +360,30 @@ class AlarmCli(cmd.Cmd):
                 print(alarm)
         print('\n')  # Empty line for visual spacing
 
+    #
+    # callback method
+    #
+    def alarm_callback(self):
+        """
+        This is the command line interface Alarm Alert function. It will be
+        executed every time an alarm alert is triggered.
+        """
+        # Try to prevent re-entry
+        while self.callback_running is True:
+            time.sleep(float(random.randint(1, 100)) / 1000.0)
+        # Should be safe now
+        self.callback_running = True
+        print('\n\nRING RING RING!!!!\n')
+        if self.callback is not None:
+            self.callback()
+        # print without a new line, using sys to work on python 2 and 3
+        sys.stdout.flush()
+        sys.stdout.write('\n%s' % self.prompt)
+        self.callback_running = False
+
 
 #
-# Non-class methods
+# Main methods
 #
 def main(argv=None):
     # Checking command line arguments

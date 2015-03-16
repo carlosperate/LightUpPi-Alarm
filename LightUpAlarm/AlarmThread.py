@@ -31,7 +31,7 @@ class AlarmThread(threading.Thread):
     #
     # metaclass methods
     #
-    def __init__(self, alarm_item, alarm_callback):
+    def __init__(self, alarm_item, alarm_callback=None):
         """
         AlarmThread constructor. Takes an AlarmItem instance and a callback
         function to initialise the member variables.
@@ -42,8 +42,9 @@ class AlarmThread(threading.Thread):
         self.daemon = True
 
         self.__alarm = alarm_item
-        self.__alarm_callback = alarm_callback
         self.__id = self.__alarm.id_
+        self.__alarm_callback = alarm_callback
+        self.alert_running = False
         self.__run = True
 
     #
@@ -64,7 +65,7 @@ class AlarmThread(threading.Thread):
                 if (self.__alarm.repeat[time_now.tm_wday] is True) and \
                    (self.__alarm.hour == time_now.tm_hour) and \
                    (self.__alarm.minute == time_now.tm_min):
-                    self.__alarm_callback()
+                    self.alarm_alert()
                     # Wait for the current minute to be over, in order to not
                     # execute the callback more than once
                     while (self.__alarm.hour == time_now.tm_hour) and \
@@ -115,3 +116,20 @@ class AlarmThread(threading.Thread):
                   (alarm_item.id_, self.__alarm.id_), file=sys.stderr)
             success = False
         return success
+
+    def alarm_alert(self):
+        """
+        This method is executed when the alarm alert is raised.
+        It executes the callback indicated on AlertThread constructor.
+        """
+        # Try to block reentry
+        while self.alert_running is True:
+            time.sleep(0.01)
+
+        # Should be safe to execute
+        self.alert_running = True
+        # run AlertManager callback event
+        print('\nThis is the Alarm %s ALERT !!!' % self.__alarm.id_)
+        if self.__alarm_callback is not None:
+            self.__alarm_callback()
+        self.alert_running = False
