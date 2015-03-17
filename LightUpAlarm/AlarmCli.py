@@ -38,7 +38,7 @@ class AlarmCli(cmd.Cmd):
     #
     # metaclass methods
     #
-    def __init__(self, callback=None):
+    def __init__(self, alarm_mgr=None, callback=None):
         """
         Instance constructor.
         Creates an AlarmManager instance and sets the alarm alert callback.
@@ -46,7 +46,10 @@ class AlarmCli(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.callback = callback
         self.callback_running = False
-        self.alarm_mgr = AlarmManager(self.alarm_callback)
+        if alarm_mgr is None:
+            self.alarm_mgr = AlarmManager(self.alarm_callback)
+        else:
+            self.alarm_mgr = alarm_mgr
 
     #
     # parent class methods and class variables
@@ -192,7 +195,6 @@ class AlarmCli(cmd.Cmd):
             'edit 7 enabled no'
             'edit 1 repeat mon fri'
         """
-        origianl_alarm_str = ''
         words = edit_str.split(' ')
         # First check for enough items
         if len(words) < 3:
@@ -207,8 +209,8 @@ class AlarmCli(cmd.Cmd):
             print('First item must be a the ID number of the alarm to edit!')
             return
 
-        # Capture the orignal alarm string for later comparison
-        origianl_alarm_str = str(self.alarm_mgr.get_alarm(alarm_id))
+        # Capture the original alarm string for later comparison
+        original_alarm_str = str(self.alarm_mgr.get_alarm(alarm_id))
 
         # Second word is the attribute to change, the third word parsed
         # inmediatly after each second word option.
@@ -285,7 +287,7 @@ class AlarmCli(cmd.Cmd):
         # If this point has been reached, an success edit has been carried
         self.show_header_only()
         print(('Edited Alarm %s:\n' % alarm_id) + AlarmCli.dashes_line +
-              '\nOriginal:\n' + origianl_alarm_str +
+              '\nOriginal:\n' + original_alarm_str +
               '\n\nNew:\n%s' % self.alarm_mgr.get_alarm(alarm_id))
 
     def do_delete(self, alarm_id_string):
@@ -385,18 +387,3 @@ class AlarmCli(cmd.Cmd):
         sys.stdout.flush()
         sys.stdout.write('\n%s' % self.prompt)
         self.callback_running = False
-
-
-#
-# Main methods
-#
-def main(argv=None):
-    # Checking command line arguments
-    if (argv is not None) and (len(argv) > 0):
-        AlarmCli().onecmd(' '.join(argv[0:]))
-    else:
-        AlarmCli().cmdloop()
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

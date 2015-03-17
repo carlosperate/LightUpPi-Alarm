@@ -77,9 +77,10 @@ def main(argv):
     # Loading the settings
     print('\n\n=========== Launching LightUp Alarm ==========')
     if launch_cli is True:
-        AlarmCli.main()
+        AlarmCli.AlarmCli().cmdloop()
     else:
         print('LightUp Server not yet implemented.')
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
