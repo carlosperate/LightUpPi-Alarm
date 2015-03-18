@@ -1,1 +1,44 @@
-# LightUp-Alarm
+# LightUpPi Alarm
+
+This is a Clock Alarm System for the Raspberry Pi.
+
+It has been modularised into the following packages:
+* __LightUpAlarm__: Completely independent Python package to manage alarms (create, edit, delete, and run alarms).
+* __LightUpHardware__: Controls external hardware to complement the alarm ring, in this case controls the room lights and snooze functionality of a physical button.
+* __LightUpServer__: Creates an HTTP server to interface with the LightUpAlarm system using a web interface or JSON.
+* __LightUpWeb__: Front-end web interface for the LightUpServer. 
+
+Additionally an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app visit its repository: [LightUpDrop Alarm](https://github.com/carlosperate/LightUpDroid-Alarm)
+
+## Installing LightUpPi Alarm
+
+Install the dependencies described below. Then download this repository, by clicking [here](https://github.com/carlosperate/LightUpPi-Alarm/archive/master.zip) or running the following in the command line:
+
+```
+git clone git://github.com/carlosperate/LightUpPi-Alarm.git
+```
+
+
+### Dependencies
+Each one of the Python packages has its own dependencies, please read their respective READMEs:
+* LightUpAlarm [README](https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md)
+* LightUpServer [README](https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpServer/README.md)
+* LightUpHardware [README](https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpHardware/README.md)
+
+
+## Running LightUpPi Alarm
+There are two different ways to run LightUpPi Alarm:
+1. Using the command line using, by launching the application with the `-c` flag:
+   ```
+   python main.py -c
+   ```
+
+2. Or using the web interface, by launching the program with the `-s` flag:
+   ```
+   python main.py -s
+   ```
+   And then pointing your browser to the following adddress: ` http://raspberrypi.local/LightUpPi `
+
+
+## License
+This project is licensed under The MIT License (MIT), a copy of which can be found in the `LICENSE` file.
