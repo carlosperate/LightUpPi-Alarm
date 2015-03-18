@@ -8,7 +8,7 @@ It has been modularised into the following packages:
 * __LightUpServer__: Creates an HTTP server to interface with the LightUpAlarm system using a web interface or JSON.
 * __LightUpWeb__: Front-end web interface for the LightUpServer. 
 
-Additionally an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app visit its repository: [LightUpDrop Alarm](https://github.com/carlosperate/LightUpDroid-Alarm)
+Additionally, an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app please visit its repository: [LightUpDrop Alarm](https://github.com/carlosperate/LightUpDroid-Alarm)
 
 ## Installing LightUpPi Alarm
 
@@ -28,6 +28,7 @@ Each one of the Python packages has its own dependencies, please read their resp
 
 ## Running LightUpPi Alarm
 There are two different ways to run LightUpPi Alarm:
+
 1. Using the command line using, by launching the application with the `-c` flag:
    ```
    python main.py -c
