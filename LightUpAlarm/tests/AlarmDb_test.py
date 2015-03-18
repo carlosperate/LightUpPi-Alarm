@@ -7,6 +7,7 @@
 #
 from __future__ import unicode_literals, absolute_import
 import unittest
+import json
 import os
 try:
     from LightUpAlarm.AlarmDb import AlarmDb
@@ -53,7 +54,7 @@ class AlarmDbTestCase(unittest.TestCase):
             os.remove(db_file)
         self.assertFalse(os.path.isfile(db_file))
         adh = AlarmDb(self.db_name)
-        adh._AlarmDb__connect()
+        adh._AlarmDb__connect_alarms()
         self.assertTrue(os.path.isfile(db_file))
 
     def test_entry(self):
@@ -218,6 +219,96 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertFalse(edited_alarm.sunday)
         self.assertFalse(edited_alarm.enabled)
 
+    def test_export_alarms_json(self):
+        """
+        Tests that the test_export_alarms_json creates a correct json string
+        for all the 5 alarms inputted into the database.
+        """
+        adh = AlarmDb(self.db_name)
+        self.only_five_entries(adh)
+        json_str = adh.export_alarms_json()
+        alarms_parsed = json.loads(json_str)
+
+        def test_alarm(test, alarm, hour, minute, monday, tuesday, wednesday,
+                          thursday, friday, saturday, sunday, enabled):
+            test.assertEqual(alarm.hour, hour)
+            test.assertEqual(alarm.minute, minute)
+            test.assertEqual(alarm.monday, monday)
+            test.assertEqual(alarm.tuesday, tuesday)
+            test.assertEqual(alarm.wednesday, wednesday)
+            test.assertEqual(alarm.thursday, thursday)
+            test.assertEqual(alarm.friday, friday)
+            test.assertEqual(alarm.saturday, saturday)
+            test.assertEqual(alarm.sunday, sunday)
+            test.assertEqual(alarm.enabled, enabled)
+
+        for i in range(0, 5):
+            test_alarm(self, adh.get_alarm(i+1),
+                       alarms_parsed['alarms'][i]['hour'],
+                       alarms_parsed['alarms'][i]['minute'],
+                       alarms_parsed['alarms'][i]['monday'],
+                       alarms_parsed['alarms'][i]['tuesday'],
+                       alarms_parsed['alarms'][i]['wednesday'],
+                       alarms_parsed['alarms'][i]['thursday'],
+                       alarms_parsed['alarms'][i]['friday'],
+                       alarms_parsed['alarms'][i]['saturday'],
+                       alarms_parsed['alarms'][i]['sunday'],
+                       alarms_parsed['alarms'][i]['enabled'])
+
+    def test_snooze_time(self):
+        """ Test the accessor for the db snooze time setting. """
+        adh = AlarmDb(self.db_name)
+        # Valid data
+        success = adh.set_snooze_time(5)
+        self.assertTrue(success)
+        self.assertEquals(adh.get_snooze_time(), 5)
+
+        # Invalid data should maintain old value
+        success = adh.set_snooze_time(-1)
+        self.assertFalse(success)
+        self.assertEquals(adh.get_snooze_time(), 5)
+
+        success = adh.set_snooze_time(2.5)
+        self.assertFalse(success)
+        self.assertEquals(adh.get_snooze_time(), 5)
+
+        success = adh.set_snooze_time('3')
+        self.assertFalse(success)
+        self.assertEquals(adh.get_snooze_time(), 5)
+
+    def test_prealert_time(self):
+        """ Test the accessor for the db prealert time setting. """
+        adh = AlarmDb(self.db_name)
+        # Valid data
+        success = adh.set_prealert_time(5)
+        self.assertTrue(success)
+        self.assertEquals(adh.get_prealert_time(), 5)
+
+        # Invalid data should maintain old value
+        success = adh.set_prealert_time(-1)
+        self.assertFalse(success)
+        self.assertEquals(adh.get_prealert_time(), 5)
+
+        success = adh.set_prealert_time(2.5)
+        self.assertFalse(success)
+        self.assertEquals(adh.get_prealert_time(), 5)
+
+        success = adh.set_prealert_time('3')
+        self.assertFalse(success)
+        self.assertEquals(adh.get_prealert_time(), 5)
+
+    def test_reset_settings(self):
+        """ Test reset settings. """
+        adh = AlarmDb(self.db_name)
+        success = adh.set_snooze_time(321)
+        success = adh.set_prealert_time(123)
+        self.assertEquals(adh.get_snooze_time(), 321)
+        self.assertEquals(adh.get_prealert_time(), 123)
+
+        success = adh.reset_settings()
+        self.assertTrue(success)
+        self.assertNotEquals(adh.get_snooze_time(), 321)
+        self.assertNotEquals(adh.get_prealert_time(), 123)
 
 if __name__ == '__main__':
     unittest.main()

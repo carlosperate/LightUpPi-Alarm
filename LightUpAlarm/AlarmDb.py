@@ -19,9 +19,17 @@
 #   sunday: Indicates if the alarm repeats every sunday. Boolean.
 #   enabled: Indicates if the alarm is enabled (turned on). Boolean.
 #
+# It also contains a 'settings' table to contain general alarm configuration
+# settings. The rows and columns are predetermined to the following
+# configuration for simple conversion to json.
+#   row 1 -> column 'snooze_time', column 'prealert_time'
+#
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
+import json
+import types
 import dataset
+import StringIO
 try:
     from LightUpAlarm.AlarmItem import AlarmItem
 except ImportError:
@@ -48,23 +56,101 @@ class AlarmDb(object):
                       'constructor is not a valid String !')
             self.db_file = 'sqlite:///alarmdatabase.db'
 
+        # Check if the settings table is empty
+        settings_table = self.__connect_settings()
+        rows = settings_table.all()
+        if rows.count == 0:
+            settings_table.insert(dict(snooze_time=3, prealert_time=15))
+
     #
     # db connection member functions
     #
-    def __connect(self):
+    def __connect_alarms(self):
         """ Connecting to a SQLite database table 'alarms'. """
         alarms_table = dataset.connect(self.db_file)['alarms']
         return alarms_table
 
+    def __connect_settings(self):
+        """ Connecting to a SQLite database table 'settings'. """
+        settings_table = dataset.connect(self.db_file)['settings']
+        return settings_table
+
     #
-    # member functions to retrieve data
+    # member functions to set settings
+    #
+    def set_snooze_time(self, snooze_time):
+        """
+        Sets the snooze time in the settings table.
+        :param snooze_time: Integer, new snooze time in minutes.
+        :return: Boolean indicating the operation success.
+        """
+        if isinstance(snooze_time, types.IntType) and snooze_time >= 0:
+            settings_table = self.__connect_settings()
+            success = settings_table.update(
+                dict(id=1, snooze_time=snooze_time), ['id'])
+            return success
+        else:
+            return False
+
+    def get_snooze_time(self):
+        """
+        Retrieves the alarm snooze time from the setting table
+        :return: Integer, snooze time in minutes
+        """
+        settings_table = self.__connect_settings()
+        settings_dict = settings_table.find_one(id=1)
+        return settings_dict['snooze_time']
+
+    def set_prealert_time(self, prealert_time):
+        """
+        Sets the prealert time (the time before the alarm alert is triggered),
+        used to set some action before the alarm rings.
+        :param prealert_time: Integer, prealert time in minutes.
+        :return: Boolean indicating the operation success.
+        """
+        if isinstance(prealert_time, types.IntType) and prealert_time >= 0:
+            settings_table = self.__connect_settings()
+            success = settings_table.update(
+                dict(id=1, prealert_time=prealert_time), ['id'])
+            return success
+        else:
+            return False
+
+    def get_prealert_time(self):
+        """
+        Retrieves from the settings table the prealeter time (the time before
+        the alarm alert is triggered), used to set some action before the
+        alarm rings.
+        :return: Integer, the prealert time in minutes.
+        """
+        settings_table = self.__connect_settings()
+        settings_dict = settings_table.find_one(id=1)
+        return settings_dict['prealert_time']
+
+    def reset_settings(self):
+        """
+        Resets the settings table to the default settings (3 min snooze time,
+        and 15 min prealert time).
+        :return: Boolean indicating the operation success.
+        """
+        settings_table = self.__connect_settings()
+        success = settings_table.delete()
+        if success is True:
+            settings_table = self.__connect_settings()
+            insert_success = settings_table.insert(
+                dict(snooze_time=3, prealert_time=15))
+            success = bool(insert_success)
+        return success
+
+    #
+    # member functions to retrieve alarm data
     #
     def get_number_of_alarms(self):
         """
         Gets the number of alarms (db table rows) stored in the database.
         :return: Integer indicating the number of saved alarms.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         return len(alarms_table)
 
     def get_all_alarms(self):
@@ -73,7 +159,7 @@ class AlarmDb(object):
         :return: List of AlarmItems containing all alarms. Returns an empty list
                  if there aren't any.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         alarm_list = []
         for alarm in alarms_table:
             alarm_list.append(
@@ -90,7 +176,7 @@ class AlarmDb(object):
         :return: List of AlarmItems containing all enabled alarms. Returns an
                  empty list if there aren't any.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         alarm_list = []
         enabled_alarms = alarms_table.find(enabled=True)
         for alarm in enabled_alarms:
@@ -108,7 +194,7 @@ class AlarmDb(object):
         :return: List of AlarmItems containing all disabled alarms. Returns an
                  empty list if there aren't any.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         alarm_list = []
         disabled_alarms = alarms_table.find(enabled=False)
         for alarm in disabled_alarms:
@@ -127,7 +213,7 @@ class AlarmDb(object):
         :return: AlarmItem with the alarm data, or None if id could not be
                  found.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         alarm_dict = alarms_table.find_one(id=alarm_id)
 
         if alarm_dict is None:
@@ -140,8 +226,37 @@ class AlarmDb(object):
                               alarm_dict['sunday']),
                              alarm_dict['enabled'], alarm_dict['id'])
 
+    def export_alarms_json(self):
+        """
+        Exports all the alarm data into a JSON string.
+        The dataset.freeze() method exports the table into a file object, but
+        it is going to be "tricked" into getting an string object to send back.
+        Because it also closes the object file we need to overwrite the close
+        function to retrieve the data and, then restore it back to normal.
+        :return: String containing all the alarm data
+        """
+        def fake_close():
+            pass
+        out_iostr = StringIO.StringIO()
+        original_close = out_iostr.close
+        alarms_table = self.__connect_alarms()
+
+        # Retrieve the db as a json StringIO without the close method
+        out_iostr.close = fake_close
+        dataset.freeze(alarms_table.all(), format='json', fileobj=out_iostr)
+        out_str = out_iostr.getvalue()
+        out_iostr.close = original_close
+        out_iostr.close()
+
+        # Get only the required data and format it
+        alarms_dict = {'alarms': json.loads(out_str)['results']}
+
+        # This commented out line would prettify the string
+        #json.dumps(alarms_dict, indent=4, separators=(',', ': '))
+        return json.dumps(alarms_dict)
+
     #
-    # member functions to add data
+    # member functions to add alarm data
     #
     def add_alarm(self, alarm_item):
         """
@@ -158,7 +273,7 @@ class AlarmDb(object):
                   'the AlarmItem type and not %s !' % type(alarm_item),
                   file=sys.stderr)
             return
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         key = alarms_table.insert(
             dict(hour=alarm_item.hour, minute=alarm_item.minute,
                  monday=alarm_item.monday, tuesday=alarm_item.tuesday,
@@ -168,7 +283,7 @@ class AlarmDb(object):
         return key
 
     #
-    # member functions to edit data
+    # member functions to edit alarm data
     #
     def edit_alarm(self, alarm_id, hour=None, minute=None, days=None,
                    enabled=None):
@@ -182,7 +297,7 @@ class AlarmDb(object):
         :param enabled: Optional boolean to indicate new alarm enabled state.
         :return: Boolean indicating the success of the 'edit' operation.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         success = True
 
         # Parse hour variable
@@ -239,7 +354,7 @@ class AlarmDb(object):
         return success
 
     #
-    # member functions to remove data
+    # member functions to remove alarm data
     #
     def delete_alarm(self, alarm_id):
         """
@@ -248,7 +363,7 @@ class AlarmDb(object):
                          removed.
         :return: Boolean indicating the success of the 'delete' operation.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         success = alarms_table.delete(id=alarm_id)
         return success
 
@@ -257,6 +372,6 @@ class AlarmDb(object):
         Remove all the alarms by dropping the table and creating it again.
         :return: Boolean indicating the success of the 'delete' operation.
         """
-        alarms_table = self.__connect()
+        alarms_table = self.__connect_alarms()
         success = alarms_table.delete()
         return success
