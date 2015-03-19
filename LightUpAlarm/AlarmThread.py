@@ -129,7 +129,8 @@ class AlarmThread(threading.Thread):
         # Should be safe to execute
         self.alert_running = True
         # run AlertManager callback event
-        print('\nThis is the Alarm %s ALERT !!!' % self.__alarm.id_)
+        print('\nALERT for the Alarm %s, with label:"%s" !!!' %
+              (self.__alarm.id_, self.__alarm.label))
         if self.__alarm_callback is not None:
             self.__alarm_callback()
         self.alert_running = False

@@ -23,7 +23,7 @@ class AlarmItem(object):
     #
     def __new__(cls, hour, minute,
                 days=(False, False, False, False, False, False, False),
-                enabled=True, alarm_id=None):
+                enabled=True, label='', alarm_id=None):
         """
         This is the class constructor. We need to initialise the class instance
         here instead of in __init__ because the accessors input sanitation is
@@ -38,14 +38,15 @@ class AlarmItem(object):
         :return: instance of the AlarmItem class. Returns None if input data is
                 invalid.
         """
-        instance = object.__new__(cls, hour, minute, days, enabled, alarm_id)
+        instance = object.__new__(
+            cls, hour, minute, days, enabled, label, alarm_id)
         # ID is only created at first save into db
         instance.__id = None
-        # Indicates if the alarm is enabled or not
-        instance.__enabled = False
         # Alarm time
         instance.__minute = 0
         instance.__hour = 0
+        # Indicates if the alarm is enabled or not
+        instance.__enabled = False
         # Contains the days of the weeks that this alarm repeats
         instance.__repeat = collections.OrderedDict()
         instance.__repeat['Monday'] = False
@@ -55,12 +56,15 @@ class AlarmItem(object):
         instance.__repeat['Friday'] = False
         instance.__repeat['Saturday'] = False
         instance.__repeat['Sunday'] = False
+        # Contains the label string
+        instance.__label = ''
 
         # Assigning values using accessors with input sanitation
         instance.hour = hour
         instance.minute = minute
         instance.repeat = days
         instance.enabled = enabled
+        instance.label = label
         if alarm_id is not None:
             instance.id_ = alarm_id
 
@@ -75,6 +79,8 @@ class AlarmItem(object):
             valid_inputs = False
         if enabled is not None and instance.enabled != enabled:
             valid_inputs = False
+        if label is not None and instance.label != label:
+            valid_inputs = False
         if alarm_id is not None and instance.id_ != alarm_id:
             valid_inputs = False
 
@@ -85,7 +91,7 @@ class AlarmItem(object):
 
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
-                 enabled=True, alarm_id=None):
+                 enabled=True, label='', alarm_id=None):
         """
         Any additional initialisation will go here. Nothing at the moment.
         Keep in mind all data has already been initialised in __new__
@@ -191,6 +197,25 @@ class AlarmItem(object):
                   ': %s!' % new_hour, file=sys.stderr)
 
     hour = property(__get_hour, __set_hour)
+
+    #
+    # label accesor
+    #
+    def __get_label(self):
+        return self.__label
+
+    def __set_label(self, new_label):
+        """
+        Checks that the input can be converted to a string and saves it.
+        :param new_label: new label for the alarm instance.
+        """
+        try:
+            self.__label = unicode(new_label)
+        except Exception:
+            print('ERROR: Provided AlarmItem().label is not convertible to ' +
+                      'a string: %s!' % new_label, file=sys.stderr)
+
+    label = property(__get_label, __set_label)
 
     #
     # repeat accesor

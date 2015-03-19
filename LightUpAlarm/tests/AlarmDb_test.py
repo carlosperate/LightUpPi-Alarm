@@ -30,6 +30,9 @@ class AlarmDbTestCase(unittest.TestCase):
     # just random repeat days to use for tests
     random_days = (False, False, True, False, False, True, False)
 
+    #
+    # Helper methods
+    #
     def only_five_entries(self, alarm_db):
         """
         Removes all rows and adds 5 entries into the input alarm database.
@@ -37,12 +40,20 @@ class AlarmDbTestCase(unittest.TestCase):
         No return as the mutable argument changes remain after exit
         """
         alarm_db.delete_all_alarms()
-        alarm_db.add_alarm(AlarmItem(13, 35, self.random_days, False))  # id 1
-        alarm_db.add_alarm(AlarmItem(14, 36, self.random_days, False))  # id 2
-        alarm_db.add_alarm(AlarmItem(15, 37, self.random_days, False))  # id 3
-        alarm_db.add_alarm(AlarmItem(16, 38, self.random_days, False))  # id 4
-        alarm_db.add_alarm(AlarmItem(17, 39, self.random_days, False))  # id 5
+        alarm_db.add_alarm(
+            AlarmItem(13, 35, self.random_days, False, ''))  # id 1
+        alarm_db.add_alarm(
+            AlarmItem(14, 36, self.random_days, False, ''))  # id 2
+        alarm_db.add_alarm(
+            AlarmItem(15, 37, self.random_days, False, ''))  # id 3
+        alarm_db.add_alarm(
+            AlarmItem(16, 38, self.random_days, False, ''))  # id 4
+        alarm_db.add_alarm(
+            AlarmItem(17, 39, self.random_days, False, ''))  # id 5
 
+    #
+    # Test methods
+    #
     def test_create_instance(self):
         """
         Simply creates an instance with an input file and checks the database
@@ -63,9 +74,10 @@ class AlarmDbTestCase(unittest.TestCase):
         minute = 35
         days = (False, False, True, False, False, True, False)
         enabled = False
+        label = 'Test alarm label'
 
         adh = AlarmDb(self.db_name)
-        test_alarm = AlarmItem(hour, minute, days, enabled)
+        test_alarm = AlarmItem(hour, minute, days, enabled, label)
         test_alarm.id_ = adh.add_alarm(test_alarm)
         retrieved_alarm = adh.get_alarm(test_alarm.id_)
         self.assertEqual(hour, retrieved_alarm.hour)
@@ -78,6 +90,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertEqual(days[5], retrieved_alarm.saturday)
         self.assertEqual(days[6], retrieved_alarm.sunday)
         self.assertEqual(enabled, retrieved_alarm.enabled)
+        self.assertEqual(label, retrieved_alarm.label)
         #print(retrieved_alarm)
 
     def test_entry_error(self):
@@ -161,11 +174,11 @@ class AlarmDbTestCase(unittest.TestCase):
         adh = AlarmDb(self.db_name)
         adh.delete_all_alarms()
         alarm_test = AlarmItem(
-            13, 35, (False, False, False, False, False, False, False), True)
+            13, 35, (False, False, False, False, False, False, False), True, '')
         alarm_test.id_ = adh.add_alarm(alarm_test)
         edit_success = adh.edit_alarm(
             alarm_test.id_, 11, 22, (True, True, True, True, True, True, True),
-            False)
+            False, 'New label')
         self.assertEqual(edit_success, True)
         edited_alarm = adh.get_alarm(alarm_test.id_)
         self.assertEqual(edited_alarm.hour, 11)
@@ -178,6 +191,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertTrue(edited_alarm.saturday)
         self.assertTrue(edited_alarm.sunday)
         self.assertFalse(edited_alarm.enabled)
+        self.assertEqual(edited_alarm.label, 'New label')
 
     def test_edit_alarm_single(self):
         """
@@ -186,7 +200,7 @@ class AlarmDbTestCase(unittest.TestCase):
         """
         adh = AlarmDb(self.db_name)
         alarm_test = AlarmItem(
-            13, 35, (True, False, True, False, True, False, True), True)
+            13, 35, (True, False, True, False, True, False, True), True, 'yes')
         alarm_test.id_ = adh.add_alarm(alarm_test)
         edit_success = adh.edit_alarm(alarm_test.id_, minute=0)
         self.assertTrue(edit_success)
@@ -201,9 +215,11 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertFalse(edited_alarm.saturday)
         self.assertTrue(edited_alarm.sunday)
         self.assertTrue(edited_alarm.enabled)
+        self.assertEqual(edited_alarm.label, 'yes')
+
         # Test with opposite initial values
         alarm_test = AlarmItem(
-            10, 20, (False, True, False, True, False, True, False), False)
+            10, 20, (False, True, False, True, False, True, False), False, 'no')
         alarm_test.id_ = adh.add_alarm(alarm_test)
         edit_success = adh.edit_alarm(alarm_test.id_, hour=0)
         self.assertTrue(edit_success)
@@ -218,6 +234,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertTrue(edited_alarm.saturday)
         self.assertFalse(edited_alarm.sunday)
         self.assertFalse(edited_alarm.enabled)
+        self.assertEqual(edited_alarm.label, 'no')
 
     def test_export_alarms_json(self):
         """
@@ -230,7 +247,7 @@ class AlarmDbTestCase(unittest.TestCase):
         alarms_parsed = json.loads(json_str)
 
         def test_alarm(test, alarm, hour, minute, monday, tuesday, wednesday,
-                          thursday, friday, saturday, sunday, enabled):
+                          thursday, friday, saturday, sunday, enabled, label):
             test.assertEqual(alarm.hour, hour)
             test.assertEqual(alarm.minute, minute)
             test.assertEqual(alarm.monday, monday)
@@ -241,6 +258,7 @@ class AlarmDbTestCase(unittest.TestCase):
             test.assertEqual(alarm.saturday, saturday)
             test.assertEqual(alarm.sunday, sunday)
             test.assertEqual(alarm.enabled, enabled)
+            test.assertEqual(alarm.label, label)
 
         for i in range(0, 5):
             test_alarm(self, adh.get_alarm(i+1),
@@ -253,7 +271,8 @@ class AlarmDbTestCase(unittest.TestCase):
                        alarms_parsed['alarms'][i]['friday'],
                        alarms_parsed['alarms'][i]['saturday'],
                        alarms_parsed['alarms'][i]['sunday'],
-                       alarms_parsed['alarms'][i]['enabled'])
+                       alarms_parsed['alarms'][i]['enabled'],
+                       alarms_parsed['alarms'][i]['label'])
 
     def test_snooze_time(self):
         """ Test the accessor for the db snooze time setting. """

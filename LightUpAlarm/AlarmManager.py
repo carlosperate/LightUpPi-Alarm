@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #
-# Short description
+# General management class for the LightUp Alarm package.
 #
 # Copyright (c) 2015 carlosperate https://github.com/carlosperate/
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
@@ -23,7 +23,7 @@ except ImportError:
 
 class AlarmManager(object):
     """
-    .
+    General management system for the LightUp Alarm package.
     """
 
     #
@@ -46,7 +46,8 @@ class AlarmManager(object):
         if AlarmDb().get_number_of_alarms() == 0:
             self.load_dummy_alarms()
 
-        # Register any enabled alarms from the database
+        # Register and launch any active (enabled with repeat days) alarms
+        # from the database
         alarms = AlarmManager.get_all_active_alarms()
         for alarm in alarms:
             self.__set_alarm_thread(alarm)
@@ -143,7 +144,7 @@ class AlarmManager(object):
     #
     def add_alarm(self, hour, minute,
                   days=(False, False, False, False, False, False, False),
-                  enabled=True):
+                  enabled=True, label=''):
         """
         Adds an alarm to the database with the input values.
         If saved successfully it is sent to __set_alarm_thread to see if it
@@ -152,9 +153,10 @@ class AlarmManager(object):
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
         :param enabled: Boolean to indicate the alarm enabled state.
+        :param label: Strong to contain the alarm label.
         :return: Integer indicating the newly created alarm ID, or None if fail.
         """
-        alarm = AlarmItem(hour, minute, days, enabled)
+        alarm = AlarmItem(hour, minute, days, enabled, label)
         if alarm is not None:
             alarm.id_ = AlarmDb().add_alarm(alarm)
             if alarm.id_ is not None:
@@ -168,21 +170,23 @@ class AlarmManager(object):
         purposes.
         """
         self.add_alarm(
-            07, 10, (True, True, True, True, True, False, False), False)
+            07, 10, (True, True, True, True, True, False, False), False, 'one')
         self.add_alarm(
-            10, 30, (False, False, False, False, False, True, True), False)
+            10, 30, (False, False, False, False, False, True, True), False,
+            'two')
 
     #
     # member methods to edit alarms
     #
     def edit_alarm(self, alarm_id, hour=None, minute=None, days=None,
-                   enabled=None):
+                   enabled=None, label=None):
         """
         Edits an alarm from the database with the input data.
         :param hour: Integer to indicate the alarm hour.
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
         :param enabled: Boolean to indicate alarm enabled state.
+        :param label: Strong to contain the alarm label.
         :return: Boolean indicating the success of the 'edit' operation.
         """
         success = True
@@ -205,6 +209,11 @@ class AlarmManager(object):
         # Parse enabled variable
         if enabled is not None:
             individual_success = db.edit_alarm(alarm_id, enabled=enabled)
+            if not individual_success:
+                success = False
+        # Parse label variable
+        if label is not None:
+            individual_success = db.edit_alarm(alarm_id, label=label)
             if not individual_success:
                 success = False
 

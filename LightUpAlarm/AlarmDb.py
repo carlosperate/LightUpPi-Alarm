@@ -164,10 +164,12 @@ class AlarmDb(object):
         for alarm in alarms_table:
             alarm_list.append(
                 AlarmItem(alarm['hour'], alarm['minute'],
-                          (alarm['monday'], alarm['tuesday'],
-                           alarm['wednesday'], alarm['thursday'],
-                           alarm['friday'], alarm['saturday'], alarm['sunday']),
-                          alarm['enabled'], alarm['id']))
+                          days=(alarm['monday'], alarm['tuesday'],
+                                alarm['wednesday'], alarm['thursday'],
+                                alarm['friday'], alarm['saturday'],
+                                alarm['sunday']),
+                          enabled=alarm['enabled'],
+                          label=alarm['label'], alarm_id=alarm['id']))
         return alarm_list
 
     def get_all_enabled_alarms(self):
@@ -182,10 +184,12 @@ class AlarmDb(object):
         for alarm in enabled_alarms:
             alarm_list.append(
                 AlarmItem(alarm['hour'], alarm['minute'],
-                          (alarm['monday'], alarm['tuesday'],
-                           alarm['wednesday'], alarm['thursday'],
-                           alarm['friday'], alarm['saturday'], alarm['sunday']),
-                          alarm['enabled'], alarm['id']))
+                          days=(alarm['monday'], alarm['tuesday'],
+                                alarm['wednesday'], alarm['thursday'],
+                                alarm['friday'], alarm['saturday'],
+                                alarm['sunday']),
+                          enabled=alarm['enabled'],
+                          label=alarm['label'], alarm_id=alarm['id']))
         return alarm_list
 
     def get_all_disabled_alarms(self):
@@ -200,10 +204,12 @@ class AlarmDb(object):
         for alarm in disabled_alarms:
             alarm_list.append(
                 AlarmItem(alarm['hour'], alarm['minute'],
-                          (alarm['monday'], alarm['tuesday'],
-                           alarm['wednesday'], alarm['thursday'],
-                           alarm['friday'], alarm['saturday'], alarm['sunday']),
-                          alarm['enabled'], alarm['id']))
+                          days=(alarm['monday'], alarm['tuesday'],
+                                alarm['wednesday'], alarm['thursday'],
+                                alarm['friday'], alarm['saturday'],
+                                alarm['sunday']),
+                          enabled=alarm['enabled'],
+                          label=alarm['label'], alarm_id=alarm['id']))
         return alarm_list
 
     def get_alarm(self, alarm_id):
@@ -220,11 +226,14 @@ class AlarmDb(object):
             return None
         else:
             return AlarmItem(alarm_dict['hour'], alarm_dict['minute'],
-                             (alarm_dict['monday'], alarm_dict['tuesday'],
-                              alarm_dict['wednesday'], alarm_dict['thursday'],
-                              alarm_dict['friday'], alarm_dict['saturday'],
-                              alarm_dict['sunday']),
-                             alarm_dict['enabled'], alarm_dict['id'])
+                             days=(alarm_dict['monday'], alarm_dict['tuesday'],
+                                   alarm_dict['wednesday'],
+                                   alarm_dict['thursday'],
+                                   alarm_dict['friday'], alarm_dict['saturday'],
+                                   alarm_dict['sunday']),
+                             enabled=alarm_dict['enabled'],
+                             label=alarm_dict['label'],
+                             alarm_id=alarm_dict['id'])
 
     def export_alarms_json(self):
         """
@@ -279,14 +288,15 @@ class AlarmDb(object):
                  monday=alarm_item.monday, tuesday=alarm_item.tuesday,
                  wednesday=alarm_item.wednesday, thursday=alarm_item.thursday,
                  friday=alarm_item.friday, saturday=alarm_item.saturday,
-                 sunday=alarm_item.sunday, enabled=alarm_item.enabled))
+                 sunday=alarm_item.sunday, enabled=alarm_item.enabled,
+                 label=alarm_item.label))
         return key
 
     #
     # member functions to edit alarm data
     #
     def edit_alarm(self, alarm_id, hour=None, minute=None, days=None,
-                   enabled=None):
+                   enabled=None, label=None):
         """
         Edits an alarm to the database with the new input data.
         Uses the input sanitation of the AlarmItem class before the data is set.
@@ -346,6 +356,17 @@ class AlarmDb(object):
             if alarm_item is not None:
                 individual_success = alarms_table.update(
                     dict(id=alarm_id, enabled=alarm_item.enabled), ['id'])
+                if not individual_success:
+                    success = False
+            else:
+                success = False
+
+        # Parse enabled variable
+        if label is not None:
+            alarm_item = AlarmItem(0, 0, label=label)
+            if alarm_item is not None:
+                individual_success = alarms_table.update(
+                    dict(id=alarm_id, label=alarm_item.label), ['id'])
                 if not individual_success:
                     success = False
             else:

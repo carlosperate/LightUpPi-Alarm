@@ -23,6 +23,9 @@ except ImportError:
 class AlarmItemTestCase(unittest.TestCase):
     """ Tests for AlarmItem class. """
 
+    #
+    # Helper methods
+    #
     def assert_repeat(self, alarm_test, days):
         self.assertEqual(alarm_test.monday, days[0])
         self.assertEqual(alarm_test.tuesday, days[1])
@@ -33,7 +36,7 @@ class AlarmItemTestCase(unittest.TestCase):
         self.assertEqual(alarm_test.sunday, days[6])
 
     def assert_stderr(self, test_srderr, equal=False):
-        """ Asserts the stderr string and resets it for next test. """
+        """ Checks the stderr error string and resets it for next test. """
         if equal is True:
             self.assertEqual(test_srderr.getvalue(), '')
         else:
@@ -42,11 +45,16 @@ class AlarmItemTestCase(unittest.TestCase):
         test_srderr.write('')
         self.assertEqual(test_srderr.getvalue(), '')
 
+    #
+    # Tests
+    #
     def test_constructor(self):
         """ Tests valid inputs to the constructor. """
+        id_ = 265
         hour = 23
         minute = 59
         days = (False, True, True, False, False, False, False)
+        label = 'Alarm label'
 
         # Check constructor with minimum arguments
         alarm_test = AlarmItem(hour, minute)
@@ -62,6 +70,16 @@ class AlarmItemTestCase(unittest.TestCase):
         # Check constructor with minimum arguments + repeat days + enabled
         alarm_test = AlarmItem(hour, minute, days, False)
         self.assertEqual(False, alarm_test.enabled)
+
+        # Check constructor with minimum arguments + repeat days + enabled +
+        # label
+        alarm_test = AlarmItem(hour, minute, days, False, label)
+        self.assertEqual(label, alarm_test.label)
+
+        # Check constructor with minimum arguments + repeat days + enabled +
+        # label + id
+        alarm_test = AlarmItem(hour, minute, days, False, label, id_)
+        self.assertEqual(id_, alarm_test.id_)
 
     def test_constructor_hour_min_range(self):
         """
@@ -335,6 +353,33 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.id_ = 10.4
             self.assertEqual(alarm_test.id_, 10)
             self.assert_stderr(test_srderr)
+
+    def test_label(self):
+        """ Tests the label variable accessors and its string coversion. """
+        alarm_test = AlarmItem(0, 0)
+        label = 'Alarm test label'
+
+        # The accessor setter prints to stderr if bad data is encountered, so
+        # we need to capture stderr to test it.
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # First ensure that successful set does not write to stderr
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.label = label
+            self.assertEqual(label, alarm_test.label)
+            self.assertEqual(test_srderr.getvalue(), '')
+
+            # Try other types
+            alarm_test.label = 5
+            self.assertEqual('5', alarm_test.label)
+            self.assertEqual(test_srderr.getvalue(), '')
+
+            alarm_test.label = True
+            self.assertEqual('True', alarm_test.label)
+            self.assertEqual(test_srderr.getvalue(), '')
+
+            alarm_test.label = {'test': 5}
+            self.assertEqual("{u'test': 5}", alarm_test.label)
+            self.assertEqual(test_srderr.getvalue(), '')
 
     def test_time_to_alarm(self):
         """
