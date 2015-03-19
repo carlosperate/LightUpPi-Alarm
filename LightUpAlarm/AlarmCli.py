@@ -60,6 +60,7 @@ class AlarmCli(cmd.Cmd):
     def preloop(self):
         """ Gets executed before the run loop. """
         self.show_header_only()
+        self.display_alarms()
 
     def onecmd(self, s):
         """
@@ -85,20 +86,48 @@ class AlarmCli(cmd.Cmd):
         """Help alarms:
         Displays all the alarms.
         """
-        # Already displayed with the header
+        self.display_alarms()
         pass
+
+    def do_labels(self, empty_str):
+        """Help active:
+        Displays all the alarms with their corresponding label.
+        """
+        all_alarms = self.alarm_mgr.get_all_alarms()
+        print('All Alarm labels:\n' + AlarmCli.dashes_line)
+        if not all_alarms:
+            print('\tThere are not saved alarms.')
+        else:
+            for alarm in all_alarms:
+                if alarm.label is not '':
+                    print('Alarm ID %3s: %s' % (alarm.id_, alarm.label))
+                else:
+                    print('Alarm ID %3s has no label.' % alarm.id_)
 
     def do_active(self, empty_str):
         """Help active:
         Displays the active alarms currently running.
         """
+        self.display_alarms()
         running_alarms = self.alarm_mgr.get_running_alarms()
-        print('Active alarms running:\n' + AlarmCli.dashes_line)
+        print('Active Alarms running:\n' + AlarmCli.dashes_line)
         if not running_alarms:
             print('\tThere are not active alarms running.')
         else:
             for alarm in running_alarms:
                 print(alarm)
+
+    def do_next(self, empty_str):
+        """Help next:
+        Displays the next scheduled alarm to alert.
+        """
+        self.display_alarms()
+        next_alarm = self.alarm_mgr.get_next_alarm()
+        if next_alarm is not None:
+            print('The next scheduled Alarm is:\n' + AlarmCli.dashes_line)
+            print(next_alarm)
+        else:
+            print('\tThere are not active alarms running.')
 
     def do_add(self, alarm_str):
         """Help add:
@@ -169,8 +198,8 @@ class AlarmCli(cmd.Cmd):
                     elif words[i+3].lower() == 'sun':
                         repeats[6] = True
                     else:
-                        print('Repeat day not recognised, use the' +
-                              ' "help edit" command for more information!')
+                        print(('Repeat day "%s" not recognised,' % words[i+3]) +
+                              ' use the "help add" command for more info !')
                         return
         else:
             # Defaults to all days enabled
@@ -179,7 +208,7 @@ class AlarmCli(cmd.Cmd):
         # Create the alarm and inform the user
         alarm_id = self.alarm_mgr.add_alarm(hour, minute, repeats, enable)
         if alarm_id is not None:
-            self.show_header_only()
+            self.display_alarms()
             print('Created Alarm:\n' + AlarmCli.dashes_line +
                   '\n%s' % AlarmManager.get_alarm(alarm_id))
         else:
@@ -209,16 +238,21 @@ class AlarmCli(cmd.Cmd):
             print('First item must be a the ID number of the alarm to edit!')
             return
 
-        # Capture the original alarm string for later comparison
-        original_alarm_str = str(self.alarm_mgr.get_alarm(alarm_id))
+        # Capture the original alarm, to check if it exits and later comparison
+        original_alarm = self.alarm_mgr.get_alarm(alarm_id)
+        if original_alarm is None:
+            self.display_alarms()
+            print('The Alarm with ID %s could not be found !' % alarm_id)
+            return
 
         # Second word is the attribute to change, the third word parsed
-        # inmediatly after each second word option.
+        # immediately after each second word option.
         # Hours
         if words[1].lower() == 'hour' or words[2] == 'hours':
             try:
                 hour = int(words[2])
             except ValueError:
+                self.display_alarms()
                 print('To edit the hour it must be followed a valid number !')
                 return
             self.alarm_mgr.edit_alarm(alarm_id, hour=hour)
@@ -250,6 +284,10 @@ class AlarmCli(cmd.Cmd):
                 print('To edit the enable it must be followed by "yes" or ' +
                       '"No" !')
                 return
+        # Label
+        elif words[1].lower() == 'label':
+            label_str = ' '.join(str(x) for x in words[2:])
+            self.alarm_mgr.edit_alarm(alarm_id, label=label_str)
         # Days
         elif words[1].lower() == 'repeat':
             if words[2].lower() == 'all':
@@ -274,8 +312,8 @@ class AlarmCli(cmd.Cmd):
                     elif words[i+2].lower() == 'sun':
                         repeats[6] = True
                     else:
-                        print('Repeat day of the week not recognised, use the' +
-                              ' "help edit" command for more information !')
+                        print(('Repeat day "%s" not recognised,' % words[i+2]) +
+                              ' use the "help edit" command for more info !')
                         return
             self.alarm_mgr.edit_alarm(alarm_id, days=repeats)
         else:
@@ -284,11 +322,14 @@ class AlarmCli(cmd.Cmd):
                   'command use the "help edit"\ncommand !')
             return
 
-        # If this point has been reached, an success edit has been carried
-        self.show_header_only()
+        # If this point has been reached, a success edit has been carried
+        self.display_alarms()
+        new_alarm = self.alarm_mgr.get_alarm(alarm_id)
         print(('Edited Alarm %s:\n' % alarm_id) + AlarmCli.dashes_line +
-              '\nOriginal:\n' + original_alarm_str +
-              '\n\nNew:\n%s' % self.alarm_mgr.get_alarm(alarm_id))
+              ('\nOriginal:\n%s\n              | label: %s\n' %
+               (original_alarm, original_alarm.label)) +
+              ('\nNew:\n%s\n              | label: %s' %
+               (new_alarm, new_alarm.label)))
 
     def do_delete(self, alarm_id_string):
         """
@@ -299,27 +340,29 @@ class AlarmCli(cmd.Cmd):
         if alarm_id_string == 'all':
             success = self.alarm_mgr.delete_all_alarms()
             if success is True:
-                self.show_header_only()
                 print('All alarms have been deleted !')
         else:
             try:
                 alarm_id = int(alarm_id_string)
             except ValueError:
+                self.display_alarms()
                 print('After "delete" there must be a number indicating ' +
                       'the Alarm ID to be deleted !')
                 return
             alarm_string = str(AlarmManager.get_alarm(alarm_id))
             success = self.alarm_mgr.delete_alarm(alarm_id)
             if success is True:
-                self.show_header_only()
+                self.display_alarms()
                 print('Alarm ID %s has been deleted:\n' % alarm_id +
                       AlarmCli.dashes_line + '\n%s' % alarm_string)
 
         if not success:
+            self.display_alarms()
             print('Alarm/s "%s" could not be deleted.' % alarm_id_string)
 
     def do_exit(self, empty_str):
         """ Exists the LightUp Alarm program. """
+        self.display_alarms()
         return True
 
     #
@@ -327,11 +370,10 @@ class AlarmCli(cmd.Cmd):
     #
     def show_header_only(self):
         """
-        Clears the screen and displays the application header with the current
-        alarms.
-        :return: All outputs for this method go straight to the stdout
+        Clears the screen and displays the application header with next alarm.
+        :return: All outputs for this method go straight to the stdout.
         """
-        # First cleat the creen
+        # First cleat the screen
         if os.name == 'nt':
             os.system("cls")
         else:
@@ -343,18 +385,31 @@ class AlarmCli(cmd.Cmd):
         print('========================================' +
               '========================================\n' + empty_line +
               '=                              LightUpPi' +
-              ' Alarm                                 =\n' +
-              empty_line + AlarmCli.dashes_line + '\n' + empty_line +
+              ' Alarm                                 =')
+        # If there are active alarms, print the next schedule time to alert
+        next_alarm = self.alarm_mgr.get_next_alarm()
+        if next_alarm is not None:
+            print(empty_line + AlarmCli.dashes_line + '\n' + empty_line +
+                  '=                   Next scheduled alert'
+                  ' is for Alarm ID %3d                   =' % next_alarm.id_)
+        print(empty_line + AlarmCli.dashes_line + '\n' + empty_line +
               '=    Use the "help" command for informat' +
-              'ion about how to use this program.     =\n' + empty_line +
+              'ion about how to use this program.     =\n' +
               '=    This program must remain open for t' +
               'he alarms to be active and running.    =\n' + empty_line +
               '========================================' +
               '========================================')
 
+        print('\n')  # Empty line for visual spacing
+
+    def display_alarms(self):
+        """
+        Displays all the current alarms.
+        :return: All outputs for this method go straight to the stdout
+        """
         # And finally, display the alarms below the header
         all_alarms = self.alarm_mgr.get_all_alarms()
-        print('\n\nAlarms:\n' + AlarmCli.dashes_line)
+        print('All Alarms:\n' + AlarmCli.dashes_line)
         if not all_alarms:
             print('\tThere are not saved alarms.')
         else:
