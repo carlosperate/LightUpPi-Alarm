@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>LightUpPi Alarm by carlosperate</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">LightUpPi Alarm</h1>
+        <p class="header">Raspberry Pi Alarm Clock with lights control, physical snooze button, and Android app</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/carlosperate/LightUpPi-Alarm/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/carlosperate/LightUpPi-Alarm/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/carlosperate/LightUpPi-Alarm">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/carlosperate">carlosperate</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a id="lightuppi-alarm" class="anchor" href="#lightuppi-alarm" aria-hidden="true"><span class="octicon octicon-link"></span></a>LightUpPi Alarm</h1>
+
+<p>This is a Clock Alarm System for the Raspberry Pi.</p>
+
+<p>It has been modularised into the following packages:</p>
+
+<ul>
+<li>
+<strong>LightUpAlarm</strong>: Completely independent Python package to manage alarms (create, edit, delete, and run alarms).</li>
+<li>
+<strong>LightUpHardware</strong>: Controls external hardware to complement the alarm ring, in this case controls the room lights and snooze functionality of a physical button.</li>
+<li>
+<strong>LightUpServer</strong>: Creates an HTTP server to interface with the LightUpAlarm system using a web interface or JSON.</li>
+<li>
+<strong>LightUpWeb</strong>: Front-end web interface for the LightUpServer. </li>
+</ul>
+
+<p>Additionally, an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app please visit its repository: <a href="https://github.com/carlosperate/LightUpDroid-Alarm">LightUpDrop Alarm</a></p>
+
+<h2>
+<a id="installing-lightuppi-alarm" class="anchor" href="#installing-lightuppi-alarm" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installing LightUpPi Alarm</h2>
+
+<p>Install the dependencies described below. Then download this repository, by clicking <a href="https://github.com/carlosperate/LightUpPi-Alarm/archive/master.zip">here</a> or running the following in the command line:</p>
+
+<pre><code>git clone git://github.com/carlosperate/LightUpPi-Alarm.git
+</code></pre>
+
+<h3>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h3>
+
+<p>Each one of the Python packages has its own dependencies, please read their respective READMEs:</p>
+
+<ul>
+<li>LightUpAlarm <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md">README</a>
+</li>
+<li>LightUpServer <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpServer/README.md">README</a>
+</li>
+<li>LightUpHardware <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpHardware/README.md">README</a>
+</li>
+</ul>
+
+<h2>
+<a id="running-lightuppi-alarm" class="anchor" href="#running-lightuppi-alarm" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running LightUpPi Alarm</h2>
+
+<p>There are two different ways to run LightUpPi Alarm:</p>
+
+<ol>
+<li>
+<p>Using the command line using, by launching the application with the <code>-c</code> flag:</p>
+
+<pre><code>python main.py -c
+</code></pre>
+</li>
+<li>
+<p>Or using the web interface, by launching the program with the <code>-s</code> flag:</p>
+
+<pre><code>python main.py -s
+</code></pre>
+
+<p>And then pointing your browser to the following adddress: <code>http://raspberrypi.local/LightUpPi</code></p>
+</li>
+</ol>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>This project is licensed under The MIT License (MIT), a copy of which can be found in the <code>LICENSE</code> file.</p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-58081399-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
