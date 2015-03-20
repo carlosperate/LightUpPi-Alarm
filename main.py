@@ -12,6 +12,8 @@ import sys
 import getopt
 import platform
 from LightUpAlarm import AlarmCli
+from LightUpAlarm import AlarmManager
+from LightUpServer import Server
 
 
 def parsing_args(argv):
@@ -75,11 +77,12 @@ def main(argv):
         print('No flags defaults to the command line interface.')
 
     # Loading the settings
-    print('\n\n=========== Launching LightUp Alarm ==========')
+    print('\n\n=========== Launching LightUpPi Alarm ==========')
+    alarm_mgr = AlarmManager.AlarmManager()
     if launch_cli is True:
-        AlarmCli.AlarmCli().cmdloop()
+        AlarmCli.AlarmCli(alarm_mgr=alarm_mgr).cmdloop()
     else:
-        print('LightUp Server not yet implemented.')
+        Server.run(alarm_mgr_arg=alarm_mgr)
 
 
 if __name__ == "__main__":
