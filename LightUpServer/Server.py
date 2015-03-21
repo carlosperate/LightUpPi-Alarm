@@ -10,7 +10,8 @@
 from __future__ import unicode_literals, absolute_import
 from flask import Flask
 from flask import Response
-from flask import request, redirect, jsonify, render_template
+from flask import request, redirect, jsonify, render_template, \
+    send_from_directory, url_for
 import datetime
 import os
 try:
@@ -26,10 +27,16 @@ flask_server = Flask(__name__, static_url_path='/LightUpPi')
 alarm_adapt = None
 
 
-@flask_server.route('/LightUpPi/')
+@flask_server.route('/')
 def root_index_redirect():
     """ Redirects the LightUpPi dir directly to index.html """
-    return redirect('/LightUpPi/index.html', code=302)
+    return redirect('/LightUpPi/', code=302)
+
+@flask_server.route('/LightUpPi/')
+def lightuppi_index_redirect():
+    """ Redirects the LightUpPi dir directly to index.html """
+    return send_from_directory(
+        flask_server.static_folder, 'index.html')
 
 
 @flask_server.route('/LightUpPi/test')
@@ -82,15 +89,12 @@ def run(alarm_mgr_arg):
     global alarm_adapt
     alarm_adapt = ServerAlarmAdapter(alarm_mgr_arg)
 
-    # Setting the static and theme folders
-    web_dir = os.path.join(
+    # Setting the static folder
+    static_dir = os.path.join(
         os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
         'LightUpWeb')
-    static_dir = os.path.join(web_dir, 'static')
-    themes_dir = os.path.join(web_dir, 'themes')
     global flask_server
     flask_server.static_folder = static_dir
-    flask_server.template_folder = themes_dir
 
     # Run flask
-    flask_server.run(host='localhost', port=80, debug=True)
+    flask_server.run(host='0.0.0.0', port=80, debug=True)
