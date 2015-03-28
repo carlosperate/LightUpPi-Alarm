@@ -72,6 +72,16 @@ class AlarmManagerTestCase(unittest.TestCase):
     def c():
         AlarmManagerTestCase.thread_alert = True
 
+    def setUp(self):
+        """
+        Sets the member variable hour to be far away enough so that we can
+        easily set up alarms without them triggering during test.
+        """
+        time_now = time.localtime(time.time())
+        self.hour = time_now.tm_hour - 1
+        if self.hour < 0:
+            self.hour = 0
+
     #
     # Test methods
     #
@@ -303,8 +313,7 @@ class AlarmManagerTestCase(unittest.TestCase):
         Ensure the thread has been launched successfully.
         This test accesses private methods.
         """
-        time_now = time.localtime(time.time())
-        alarm = AlarmItem(time_now.tm_hour - 1, 34,
+        alarm = AlarmItem(self.hour, 34,
                           days=(True, True, True, True, True, True, True),
                           enabled=False, label='test', alarm_id=96)
         alarm_mgr = AlarmManager()
@@ -335,15 +344,13 @@ class AlarmManagerTestCase(unittest.TestCase):
         No need to check for input with wrong ID as that gets dealt with in the
         AlarmThread class and unit test.
         """
-        time_now = time.localtime(time.time())
-        first_alarm = AlarmItem(
-            time_now.tm_hour - 1, 34,
-            days=(True, True, True, True, True, True, True), enabled=True,
-            label='test', alarm_id=96)
-        new_alarm = AlarmItem(
-            time_now.tm_hour - 1, 34,
-            days=(False, False, False, False, False, False, False),
-            enabled=False, label='test replace', alarm_id=96)
+        first_alarm = AlarmItem(self.hour, 34, label='test', alarm_id=96,
+                                days=(True, True, True, True, True, True, True),
+                                enabled=True)
+        new_alarm = AlarmItem(self.hour, 34, enabled=False, alarm_id=96,
+                              label='test replace',
+                              days=(False, False, False, False, False, False,
+                                    False))
         alarm_mgr = AlarmManager()
         alarm_mgr.delete_all_alarms()
         numb_threads = threading.activeCount()
@@ -363,10 +370,8 @@ class AlarmManagerTestCase(unittest.TestCase):
         10 seconds.
         This test accesses private methods.
         """
-        time_now = time.localtime(time.time())
-        alarm = AlarmItem(time_now.tm_hour - 1, 34,
-                          days=(False, True, True, True, True, True, True),
-                          enabled=True, label='test', alarm_id=96)
+        alarm = AlarmItem(self.hour, 34, enabled=True, label='t', alarm_id=96,
+                          days=(False, True, True, True, True, True, True))
         alarm_mgr = AlarmManager()
         alarm_mgr.delete_all_alarms()
         numb_threads = threading.activeCount()
@@ -382,15 +387,12 @@ class AlarmManagerTestCase(unittest.TestCase):
         Launches 2 alarms threads, checks they are running and them stops them
         all and checks again.
         """
-        time_now = time.localtime(time.time())
         alarm_one = AlarmItem(
-            time_now.tm_hour - 1, 34,
-            days=(False, False, False, False, False, False, True), enabled=True,
-            alarm_id=31)
+            self.hour, 34, enabled=True, alarm_id=31,
+            days=(False, False, False, False, False, False, True))
         alarm_two = AlarmItem(
-            time_now.tm_hour - 1, 34,
-            days=(False, False, False, False, False, False, True), enabled=True,
-            alarm_id=32)
+            self.hour, 34, enabled=True, alarm_id=32,
+            days=(False, False, False, False, False, False, True))
         alarm_mgr = AlarmManager()
         # There is a bit of circular dependency here as delete all will execute
         # __stop_all_alarm_threads
@@ -452,15 +454,12 @@ class AlarmManagerTestCase(unittest.TestCase):
 
     def test_is_alarm_running(self):
         """ Adds a couple of alarms and tests the is_alarm_running() method. """
-        time_now = time.localtime(time.time())
         alarm_active = AlarmItem(
-            time_now.tm_hour - 1 , time_now.tm_min,
-            days=(True, True, True, True, True, True, True), enabled=True,
-            alarm_id=96)
+            self.hour, 20, enabled=True, alarm_id=96,
+            days=(True, True, True, True, True, True, True))
         alarm_inactive = AlarmItem(
-            time_now.tm_hour - 1 , time_now.tm_min,
-            days=(False, False, False, False, False, False, False),
-            enabled=False, alarm_id=86)
+            self.hour, 20, enabled=False, alarm_id=86,
+            days=(False, False, False, False, False, False, False))
         alarm_mgr = AlarmManager()
         alarm_mgr.delete_all_alarms()
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm_active)
@@ -507,11 +506,8 @@ class AlarmManagerTestCase(unittest.TestCase):
         self.assertTrue(check_result)
 
         # Now that everything is working correctly once more, add extra thread
-        time_now = time.localtime(time.time())
-        alarm_test = AlarmItem(
-            time_now.tm_hour - 1, time_now.tm_min,
-            days=(True, True, True, True, True, True, True), enabled=True,
-            alarm_id=96)
+        alarm_test = AlarmItem(self.hour, 20, enabled=True, alarm_id=96,
+                               days=(True, True, True, True, True, True, True))
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm_test)
         self.assertTrue(launch_success)
         check_result = alarm_mgr.check_threads_state()
