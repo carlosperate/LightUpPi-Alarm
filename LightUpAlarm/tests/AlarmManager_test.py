@@ -306,6 +306,40 @@ class AlarmManagerTestCase(unittest.TestCase):
             retrieved_alarm, 3, 23, 34,
             (False, True, False, True, False, True, False), False, 'edited')
 
+    def test_update_alarm(self):
+        """
+        Places 5 alarms into the database, it then retrieves one, updates it
+        and confirms all edits were successful and the timestamp has changed.
+        """
+        alarm_mgr = AlarmManager()
+        # id 3 = 11, 15, (True, False, False, True, False, False, True), True,''
+        self.create_alarms(alarm_mgr)
+
+        # Check the alarm has the expected data before editing it
+        retrieved_alarm = AlarmManager.get_alarm(3)
+        self.assert_alarm(
+            retrieved_alarm, 3, 11, 15,
+            (True, False, False, True, False, False, True), True, '')
+        original_timestamp = retrieved_alarm.timestamp
+
+        # Edit it AlarmInstance
+        retrieved_alarm.hour = 23
+        retrieved_alarm.minute = 34
+        retrieved_alarm.enabled = False
+        retrieved_alarm.monday = False
+        retrieved_alarm.label = 'edited'
+
+        # Update the alarm in the db and check values
+        time.sleep(1)
+        update_success = alarm_mgr.update_alarm(retrieved_alarm)
+        self.assertTrue(update_success)
+        self.assertGreater(retrieved_alarm.timestamp, original_timestamp)
+        retrieved_alarm = AlarmManager.get_alarm(retrieved_alarm.id_)
+        self.assertGreater(retrieved_alarm.timestamp, original_timestamp)
+        self.assert_alarm(
+            retrieved_alarm, 3, 23, 34,
+            (False, False, False, True, False, False, True), False, 'edited')
+
     def test_set_alarm_thread(self):
         """
         Test that the __set_alarm_thread private method will only launch an

@@ -1,11 +1,9 @@
 #!/usr/bin/env python2
 #
-# Class to define an Alarm.
+# Class to define Alarm data.
 #
 # Copyright (c) 2015 carlosperate https://github.com/carlosperate/
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
-#
-# Full description goes here
 #
 from __future__ import unicode_literals, absolute_import, print_function
 from __builtin__ import property
@@ -16,14 +14,31 @@ import sys
 
 class AlarmItem(object):
     """
-    .
+    This class defines an Alarm object, with the following data items.
+        id: primary key ID from the alarm database.
+        hour: Hour value for the alarm. Integer from 0 to 23.
+        minute: Minute value for the alarm. Integer from 0 to 59.
+        monday: Indicates if the alarm repeats every monday. Boolean.
+        tuesday: Indicates if the alarm repeats every tuesday. Boolean.
+        wednesday: Indicates if the alarm repeats every wednesday. Boolean.
+        thursday: Indicates if the alarm repeats every thursday. Boolean.
+        friday: Indicates if the alarm repeats every friday. Boolean.
+        saturday: Indicates if the alarm repeats every saturday. Boolean.
+        sunday: Indicates if the alarm repeats every sunday. Boolean.
+        enabled: Indicates if the alarm is enabled (turned on). Boolean.
+        label: Stores a string to accompany the alarm as a label.
+        timestamp: Timestamp, in seconds since 1970, of the last time the alarm
+                   was modified. This is stored and read from the storage
+                   database, so this class does not set the value without an
+                   input.
     """
+
     #
-    # metaclass methods: constructor and print
+    # metaclass methods: constructor, initialiser and print
     #
     def __new__(cls, hour, minute,
                 days=(False, False, False, False, False, False, False),
-                enabled=True, label='', alarm_id=None):
+                enabled=True, label='', timestamp=0, alarm_id=None):
         """
         This is the class constructor. We need to initialise the class instance
         here instead of in __init__ because the accessors input sanitation is
@@ -58,6 +73,8 @@ class AlarmItem(object):
         instance.__repeat['Sunday'] = False
         # Contains the label string
         instance.__label = ''
+        # Contains the timestamp of the last time it was modified
+        instance.__timestamp = 0
 
         # Assigning values using accessors with input sanitation
         instance.hour = hour
@@ -65,6 +82,7 @@ class AlarmItem(object):
         instance.repeat = days
         instance.enabled = enabled
         instance.label = label
+        instance.timestamp = timestamp
         if alarm_id is not None:
             instance.id_ = alarm_id
 
@@ -81,6 +99,8 @@ class AlarmItem(object):
             valid_inputs = False
         if label is not None and instance.label != label:
             valid_inputs = False
+        if timestamp is not None and instance.timestamp != timestamp:
+            valid_inputs = False
         if alarm_id is not None and instance.id_ != alarm_id:
             valid_inputs = False
 
@@ -91,10 +111,11 @@ class AlarmItem(object):
 
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
-                 enabled=True, label='', alarm_id=None):
+                 enabled=True, label='', timestamp=0, alarm_id=None):
         """
         Any additional initialisation will go here. Nothing at the moment.
-        Keep in mind all data has already been initialised in __new__
+        Keep in mind all data has already been initialised in the __new__
+        constructor.
         """
         pass
 
@@ -122,7 +143,7 @@ class AlarmItem(object):
 
     def __set_id(self, new_id):
         """
-        Sets id value. Must be an integer.
+        Sets id value. Must be a positive integer.
         :param new_id: new ID for the alarm instance.
         """
         if isinstance(new_id, types.IntType) and new_id >= 0:
@@ -213,9 +234,29 @@ class AlarmItem(object):
             self.__label = unicode(new_label)
         except Exception:
             print('ERROR: Provided AlarmItem().label is not convertible to ' +
-                      'a string: %s!' % new_label, file=sys.stderr)
+                  'a string: %s!' % new_label, file=sys.stderr)
 
     label = property(__get_label, __set_label)
+
+    #
+    # timestamp accesor
+    #
+    def __get_timestamp(self):
+        return self.__timestamp
+
+    def __set_timestamp(self, new_timestamp):
+        """
+        Sets timestamp value in seconds since 1970. Must be an positive integer.
+        Even at 32bit this should last until the year 2038.
+        :param new_timestamp: new ID for the alarm instance.
+        """
+        if isinstance(new_timestamp, types.IntType) and new_timestamp >= 0:
+            self.__timestamp = new_timestamp
+        else:
+            print('ERROR: Provided AlarmItem().timestamp type is not a ' +
+                  'positive Integer: %s!' % new_timestamp, file=sys.stderr)
+
+    timestamp = property(__get_timestamp, __set_timestamp)
 
     #
     # repeat accesor

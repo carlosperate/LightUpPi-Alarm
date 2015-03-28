@@ -7,6 +7,8 @@
 #
 from __future__ import unicode_literals, absolute_import
 import unittest
+import mock
+import time
 import json
 import os
 try:
@@ -40,16 +42,16 @@ class AlarmDbTestCase(unittest.TestCase):
         No return as the mutable argument changes remain after exit
         """
         alarm_db.delete_all_alarms()
-        alarm_db.add_alarm(
-            AlarmItem(13, 35, self.random_days, False, ''))  # id 1
-        alarm_db.add_alarm(
-            AlarmItem(14, 36, self.random_days, False, ''))  # id 2
-        alarm_db.add_alarm(
-            AlarmItem(15, 37, self.random_days, False, ''))  # id 3
-        alarm_db.add_alarm(
-            AlarmItem(16, 38, self.random_days, False, ''))  # id 4
-        alarm_db.add_alarm(
-            AlarmItem(17, 39, self.random_days, False, ''))  # id 5
+        alarm_db.add_alarm(AlarmItem(
+            13, 35, days=self.random_days, enabled=False, label=''))  # id 1
+        alarm_db.add_alarm(AlarmItem(
+            14, 36, days=self.random_days, enabled=False, label=''))  # id 2
+        alarm_db.add_alarm(AlarmItem(
+            15, 37, days=self.random_days, enabled=False, label=''))  # id 3
+        alarm_db.add_alarm(AlarmItem(
+            16, 38, days=self.random_days, enabled=False, label=''))  # id 4
+        alarm_db.add_alarm(AlarmItem(
+            17, 39, days=self.random_days, enabled=False, label=''))  # id 5
 
     #
     # Test methods
@@ -68,17 +70,21 @@ class AlarmDbTestCase(unittest.TestCase):
         adh._AlarmDb__connect_alarms()
         self.assertTrue(os.path.isfile(db_file))
 
-    def test_entry(self):
+    @mock.patch('time.time')
+    def test_entry(self, mock_time):
         """ Adds an entry to the database and deletes it. """
         hour = 13
         minute = 35
         days = (False, False, True, False, False, True, False)
         enabled = False
         label = 'Test alarm label'
+        timestamp = 12341234
+        mock_time.return_value = timestamp
 
         adh = AlarmDb(self.db_name)
         test_alarm = AlarmItem(hour, minute, days, enabled, label)
         test_alarm.id_ = adh.add_alarm(test_alarm)
+        self.assertEqual(timestamp, test_alarm.timestamp)
         retrieved_alarm = adh.get_alarm(test_alarm.id_)
         self.assertEqual(hour, retrieved_alarm.hour)
         self.assertEqual(minute, retrieved_alarm.minute)
@@ -91,7 +97,7 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertEqual(days[6], retrieved_alarm.sunday)
         self.assertEqual(enabled, retrieved_alarm.enabled)
         self.assertEqual(label, retrieved_alarm.label)
-        #print(retrieved_alarm)
+        self.assertEqual(timestamp, retrieved_alarm.timestamp)
 
     def test_entry_error(self):
         """ Tries to add an entry with an incorrect number of arguments. """
@@ -159,11 +165,16 @@ class AlarmDbTestCase(unittest.TestCase):
         """
         adh = AlarmDb(self.db_name)
         adh.delete_all_alarms()
-        adh.add_alarm(AlarmItem(13, 35, self.random_days, True))   # id 1
-        adh.add_alarm(AlarmItem(14, 36, self.random_days, False))  # id 2
-        adh.add_alarm(AlarmItem(15, 37, self.random_days, True))   # id 3
-        adh.add_alarm(AlarmItem(16, 38, self.random_days, False))  # id 4
-        adh.add_alarm(AlarmItem(17, 39, self.random_days, True))   # id 5
+        adh.add_alarm(
+            AlarmItem(13, 35, days=self.random_days, enabled=True))   # id 1
+        adh.add_alarm(
+            AlarmItem(14, 36, days=self.random_days, enabled=False))  # id 2
+        adh.add_alarm(
+            AlarmItem(15, 37, days=self.random_days, enabled=True))   # id 3
+        adh.add_alarm(
+            AlarmItem(16, 38, days=self.random_days, enabled=False))  # id 4
+        adh.add_alarm(
+            AlarmItem(17, 39, days=self.random_days, enabled=True))   # id 5
         enabled_alarms = adh.get_all_enabled_alarms()
         disabled_alarms = adh.get_all_disabled_alarms()
         self.assertEqual(len(enabled_alarms), 3)
@@ -174,13 +185,23 @@ class AlarmDbTestCase(unittest.TestCase):
         adh = AlarmDb(self.db_name)
         adh.delete_all_alarms()
         alarm_test = AlarmItem(
-            13, 35, (False, False, False, False, False, False, False), True, '')
+            13, 35, days=(False, False, False, False, False, False, False),
+            enabled=True, label='')
+
+        # Check the timestamp changes on add_alarm
+        original_timestamp = alarm_test.timestamp
         alarm_test.id_ = adh.add_alarm(alarm_test)
+        self.assertNotEqual(alarm_test.timestamp, original_timestamp)
+
+        # Edit alarm, check new data and different timestamp
+        original_timestamp = alarm_test.timestamp
+        time.sleep(1)
         edit_success = adh.edit_alarm(
-            alarm_test.id_, 11, 22, (True, True, True, True, True, True, True),
-            False, 'New label')
+            alarm_test.id_, 11, 22, enabled=False, label='New label',
+            days=(True, True, True, True, True, True, True))
         self.assertEqual(edit_success, True)
         edited_alarm = adh.get_alarm(alarm_test.id_)
+        self.assertGreater(edited_alarm.timestamp, original_timestamp)
         self.assertEqual(edited_alarm.hour, 11)
         self.assertEqual(edited_alarm.minute, 22)
         self.assertTrue(edited_alarm.monday)
@@ -200,11 +221,21 @@ class AlarmDbTestCase(unittest.TestCase):
         """
         adh = AlarmDb(self.db_name)
         alarm_test = AlarmItem(
-            13, 35, (True, False, True, False, True, False, True), True, 'yes')
+            13, 35, enabled=True, label='yes',
+            days=(True, False, True, False, True, False, True))
+
+        # Check the timestamp changes on add_alarm
+        original_timestamp = alarm_test.timestamp
         alarm_test.id_ = adh.add_alarm(alarm_test)
+        self.assertNotEqual(alarm_test.timestamp, original_timestamp)
+
+        # Edit alarm, check new data and different timestamp
+        original_timestamp = alarm_test.timestamp
+        time.sleep(1)
         edit_success = adh.edit_alarm(alarm_test.id_, minute=0)
         self.assertTrue(edit_success)
         edited_alarm = adh.get_alarm(alarm_test.id_)
+        self.assertGreater(edited_alarm.timestamp, original_timestamp)
         self.assertEqual(edited_alarm.hour, 13)
         self.assertEqual(edited_alarm.minute, 0)
         self.assertTrue(edited_alarm.monday)
@@ -219,7 +250,8 @@ class AlarmDbTestCase(unittest.TestCase):
 
         # Test with opposite initial values
         alarm_test = AlarmItem(
-            10, 20, (False, True, False, True, False, True, False), False, 'no')
+            10, 20, enabled=False, label='no',
+            days=(False, True, False, True, False, True, False))
         alarm_test.id_ = adh.add_alarm(alarm_test)
         edit_success = adh.edit_alarm(alarm_test.id_, hour=0)
         self.assertTrue(edit_success)
@@ -236,6 +268,46 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertFalse(edited_alarm.enabled)
         self.assertEqual(edited_alarm.label, 'no')
 
+    def test_update_alarm(self):
+        """ Creates an alarm and update it. """
+        adh = AlarmDb(self.db_name)
+        adh.delete_all_alarms()
+        alarm_test = AlarmItem(
+            13, 35, days=(False, False, False, False, False, False, False),
+            enabled=True, label='')
+        original_timestamp = alarm_test.timestamp
+
+        # Add the alarm to the database and check the timestamp has been set
+        alarm_test.id_ = adh.add_alarm(alarm_test)
+        self.assertNotEqual(alarm_test.timestamp, original_timestamp)
+        original_timestamp = alarm_test.timestamp
+
+        # Create a new AlarmItem with the same id and timestamp to update the db
+        alarm_updated = AlarmItem(
+            21, 12, days=(True, True, True, True, True, True, True),
+            enabled=False, label='new label', alarm_id=alarm_test.id_,
+            timestamp=original_timestamp)
+        time.sleep(1)
+        update_success = adh.update_alarm(alarm_updated)
+        self.assertEqual(update_success, True)
+        self.assertNotEqual(alarm_updated.timestamp, original_timestamp)
+
+        # Check the new data has replaced the old,
+        retrieved_alarm = adh.get_alarm(alarm_test.id_)
+        self.assertEqual(retrieved_alarm.hour, 21)
+        self.assertEqual(retrieved_alarm.minute, 12)
+        self.assertTrue(retrieved_alarm.monday)
+        self.assertTrue(retrieved_alarm.tuesday)
+        self.assertTrue(retrieved_alarm.wednesday)
+        self.assertTrue(retrieved_alarm.thursday)
+        self.assertTrue(retrieved_alarm.friday)
+        self.assertTrue(retrieved_alarm.saturday)
+        self.assertTrue(retrieved_alarm.sunday)
+        self.assertFalse(retrieved_alarm.enabled)
+        self.assertEqual(retrieved_alarm.label, 'new label')
+        self.assertEqual(retrieved_alarm.timestamp, alarm_updated.timestamp)
+        self.assertGreater(retrieved_alarm.timestamp, original_timestamp)
+
     def test_export_alarms_json(self):
         """
         Tests that the test_export_alarms_json creates a correct json string
@@ -247,7 +319,7 @@ class AlarmDbTestCase(unittest.TestCase):
         alarms_parsed = json.loads(json_str)
 
         def test_alarm(test, alarm, hour, minute, monday, tuesday, wednesday,
-                          thursday, friday, saturday, sunday, enabled, label):
+                       thursday, friday, saturday, sunday, enabled, label):
             test.assertEqual(alarm.hour, hour)
             test.assertEqual(alarm.minute, minute)
             test.assertEqual(alarm.monday, monday)
@@ -320,7 +392,9 @@ class AlarmDbTestCase(unittest.TestCase):
         """ Test reset settings. """
         adh = AlarmDb(self.db_name)
         success = adh.set_snooze_time(321)
+        self.assertTrue(success)
         success = adh.set_prealert_time(123)
+        self.assertTrue(success)
         self.assertEquals(adh.get_snooze_time(), 321)
         self.assertEquals(adh.get_prealert_time(), 123)
 

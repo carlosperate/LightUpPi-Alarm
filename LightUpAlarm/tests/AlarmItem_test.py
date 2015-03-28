@@ -55,6 +55,7 @@ class AlarmItemTestCase(unittest.TestCase):
         minute = 59
         days = (False, True, True, False, False, False, False)
         label = 'Alarm label'
+        timestamp = 12345678
 
         # Check constructor with minimum arguments
         alarm_test = AlarmItem(hour, minute)
@@ -62,23 +63,33 @@ class AlarmItemTestCase(unittest.TestCase):
         self.assertEqual(minute, alarm_test.minute)
         for day in alarm_test.repeat:
             self.assertEqual(alarm_test.repeat[day], False)
+        self.assertEqual(alarm_test.label, '')
+        self.assertEqual(alarm_test.timestamp, 0)
 
         # Check constructor with minimum arguments + repeat days
-        alarm_test = AlarmItem(hour, minute, days)
+        alarm_test = AlarmItem(hour, minute, days=days)
         self.assertEqual(days, alarm_test.repeat)
 
         # Check constructor with minimum arguments + repeat days + enabled
-        alarm_test = AlarmItem(hour, minute, days, False)
+        alarm_test = AlarmItem(hour, minute, days=days, enabled=False)
         self.assertEqual(False, alarm_test.enabled)
 
         # Check constructor with minimum arguments + repeat days + enabled +
         # label
-        alarm_test = AlarmItem(hour, minute, days, False, label)
+        alarm_test = AlarmItem(
+            hour, minute, days=days, enabled=False, label=label)
         self.assertEqual(label, alarm_test.label)
 
         # Check constructor with minimum arguments + repeat days + enabled +
+        # label + timestamp
+        alarm_test = AlarmItem(hour, minute, days=days, enabled=False,
+                               label=label, timestamp=timestamp)
+        self.assertEqual(timestamp, alarm_test.timestamp)
+
+        # Check constructor with minimum arguments + repeat days + enabled +
         # label + id
-        alarm_test = AlarmItem(hour, minute, days, False, label, id_)
+        alarm_test = AlarmItem(hour, minute, days=days, enabled=False,
+                               label=label, timestamp=timestamp, alarm_id=id_)
         self.assertEqual(id_, alarm_test.id_)
 
     def test_constructor_hour_min_range(self):
@@ -380,6 +391,38 @@ class AlarmItemTestCase(unittest.TestCase):
             alarm_test.label = {'test': 5}
             self.assertEqual("{u'test': 5}", alarm_test.label)
             self.assertEqual(test_srderr.getvalue(), '')
+
+    def test_timestamp(self):
+        """
+        Tests the timetstamp member variable accessors filters non-integers.
+        """
+        alarm_test = AlarmItem(0, 0)
+        alarm_test.timestamp = 1427486989
+        self.assertEqual(alarm_test.timestamp, 1427486989)
+
+        # The accessor setter prints to stderr if bad data is encountered, so
+        # we need to capture stderr to test it.
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # First ensure that successful set does not write to stderr
+            self.assertEqual(test_srderr.getvalue(), '')
+            alarm_test.timestamp = 10
+            self.assertEqual(test_srderr.getvalue(), '')
+            self.assertEqual(alarm_test.timestamp, 10)
+
+            # Negative integer instead of positive integer
+            alarm_test.timestamp = -2
+            self.assertEqual(alarm_test.timestamp, 10)
+            self.assert_stderr(test_srderr)
+
+            # String instead of integer
+            alarm_test.timestamp = 'String'
+            self.assertEqual(alarm_test.timestamp, 10)
+            self.assert_stderr(test_srderr)
+
+            # Float instead of integer
+            alarm_test.timestamp = 10.4
+            self.assertEqual(alarm_test.timestamp, 10)
+            self.assert_stderr(test_srderr)
 
     def test_time_to_alarm(self):
         """

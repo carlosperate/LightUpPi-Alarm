@@ -35,10 +35,10 @@ class AlarmThreadTestCase(unittest.TestCase):
 
     def test_constructor(self):
         """ Tests the class constructor. """
-
-        alarm_test = AlarmItem(
-            9, 34, (True, True, True, True, True, True, True), False, 96)
-        alarm_thread = AlarmThread(alarm_test, AlarmThreadTestCase.empty_callback)
+        alarm_test = AlarmItem(9, 34, enabled=False, alarm_id=96,
+                               days=(True, True, True, True, True, True, True))
+        alarm_thread = AlarmThread(
+            alarm_test, AlarmThreadTestCase.empty_callback)
         self.assertIs(alarm_thread._AlarmThread__alarm, alarm_test)
         self.assertIs(
             alarm_thread._AlarmThread__alarm_callback,
@@ -46,18 +46,18 @@ class AlarmThreadTestCase(unittest.TestCase):
 
     def test_get_id(self):
         """ Tests the get_id() method. """
-        alarm_test = AlarmItem(
-            9, 34, (True, True, True, True, True, True, True), False, 36)
+        alarm_test = AlarmItem(9, 34, enabled=False, alarm_id=36,
+                               days=(True, True, True, True, True, True, True))
         alarm_thread = AlarmThread(
             alarm_test, AlarmThreadTestCase.empty_callback)
         self.assertEqual(alarm_thread.get_id(), alarm_test.id_)
 
     def test_edit_alarm(self):
         """ Tests the edit_alarm() method. """
-        alarm_test = AlarmItem(
-            9, 34, (True, True, True, True, True, True, True), False, 36)
-        new_alarm = AlarmItem(
-            9, 34, (True, True, True, True, True, True, True), False, 96)
+        alarm_test = AlarmItem(9, 34, enabled=False, alarm_id=36,
+                               days=(True, True, True, True, True, True, True))
+        new_alarm = AlarmItem(9, 34, enabled=False, alarm_id=96,
+                              days=(True, True, True, True, True, True, True))
         alarm_thread = AlarmThread(
             alarm_test, AlarmThreadTestCase.empty_callback)
         self.assertIs(alarm_thread._AlarmThread__alarm, alarm_test)
@@ -101,8 +101,8 @@ class AlarmThreadTestCase(unittest.TestCase):
             time_now = time.localtime(time.time())
         alarm_thread = AlarmThread(
             AlarmItem(
-                time_now.tm_hour, time_now.tm_min,
-                (True, True, True, True, True, True, True), True, 96),
+                time_now.tm_hour, time_now.tm_min, enabled=True, alarm_id=96,
+                days=(True, True, True, True, True, True, True)),
             callback)
         self.assertRaises(TypeError, alarm_thread.run)
 

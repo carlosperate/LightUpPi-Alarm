@@ -18,6 +18,8 @@
 #   saturday: Indicates if the alarm repeats every saturday. Boolean.
 #   sunday: Indicates if the alarm repeats every sunday. Boolean.
 #   enabled: Indicates if the alarm is enabled (turned on). Boolean.
+#   label: Stores a string to accompany the alarm as a label.
+#   timestamp: Indicates time of the last modification, in seconds since 1970.
 #
 # It also contains a 'settings' table to contain general alarm configuration
 # settings. The rows and columns are predetermined to the following
@@ -27,6 +29,7 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import json
+import time
 import types
 import dataset
 import StringIO
@@ -44,7 +47,7 @@ class AlarmDb(object):
     #
     def __init__(self, db_name=None):
         """
-        AlarmDbHelper constructor.  It can take an argument to indicate the
+        AlarmDbHelper initialiser. It can take an argument to indicate the
         sqlite database filename.
         :param db_name: Optional string indicating the database filename.
         """
@@ -94,7 +97,7 @@ class AlarmDb(object):
 
     def get_snooze_time(self):
         """
-        Retrieves the alarm snooze time from the setting table
+        Retrieves the alarm snooze time from the settings table
         :return: Integer, snooze time in minutes
         """
         settings_table = self.__connect_settings()
@@ -169,7 +172,8 @@ class AlarmDb(object):
                                 alarm['friday'], alarm['saturday'],
                                 alarm['sunday']),
                           enabled=alarm['enabled'],
-                          label=alarm['label'], alarm_id=alarm['id']))
+                          label=alarm['label'], timestamp=alarm['timestamp'],
+                          alarm_id=alarm['id']))
         return alarm_list
 
     def get_all_enabled_alarms(self):
@@ -189,7 +193,8 @@ class AlarmDb(object):
                                 alarm['friday'], alarm['saturday'],
                                 alarm['sunday']),
                           enabled=alarm['enabled'],
-                          label=alarm['label'], alarm_id=alarm['id']))
+                          label=alarm['label'], timestamp=alarm['timestamp'],
+                          alarm_id=alarm['id']))
         return alarm_list
 
     def get_all_disabled_alarms(self):
@@ -209,7 +214,8 @@ class AlarmDb(object):
                                 alarm['friday'], alarm['saturday'],
                                 alarm['sunday']),
                           enabled=alarm['enabled'],
-                          label=alarm['label'], alarm_id=alarm['id']))
+                          label=alarm['label'], timestamp=alarm['timestamp'],
+                          alarm_id=alarm['id']))
         return alarm_list
 
     def get_alarm(self, alarm_id):
@@ -233,6 +239,7 @@ class AlarmDb(object):
                                    alarm_dict['sunday']),
                              enabled=alarm_dict['enabled'],
                              label=alarm_dict['label'],
+                             timestamp=alarm_dict['timestamp'],
                              alarm_id=alarm_dict['id'])
 
     def export_alarms_json(self):
@@ -282,21 +289,26 @@ class AlarmDb(object):
                   'the AlarmItem type and not %s !' % type(alarm_item),
                   file=sys.stderr)
             return
+
+        # When a new alarm is added, include the current time (in seconds since
+        # 1970) as the timestamp and add it to the alarm item
+        alarm_item.timestamp = int(round(time.time()))
         alarms_table = self.__connect_alarms()
+
         key = alarms_table.insert(
             dict(hour=alarm_item.hour, minute=alarm_item.minute,
                  monday=alarm_item.monday, tuesday=alarm_item.tuesday,
                  wednesday=alarm_item.wednesday, thursday=alarm_item.thursday,
                  friday=alarm_item.friday, saturday=alarm_item.saturday,
                  sunday=alarm_item.sunday, enabled=alarm_item.enabled,
-                 label=alarm_item.label))
+                 label=alarm_item.label, timestamp=alarm_item.timestamp))
         return key
 
     #
     # member functions to edit alarm data
     #
     def edit_alarm(self, alarm_id, hour=None, minute=None, days=None,
-                   enabled=None, label=None):
+                   enabled=None, label=None, timestamp=None):
         """
         Edits an alarm to the database with the new input data.
         Uses the input sanitation of the AlarmItem class before the data is set.
@@ -361,7 +373,7 @@ class AlarmDb(object):
             else:
                 success = False
 
-        # Parse enabled variable
+        # Parse label variable
         if label is not None:
             alarm_item = AlarmItem(0, 0, label=label)
             if alarm_item is not None:
@@ -371,6 +383,45 @@ class AlarmDb(object):
                     success = False
             else:
                 success = False
+
+        # Parse the timestamp, if no value is inputted add the current time
+        new_timestamp = int(round(time.time()))
+        if timestamp is not None:
+            alarm_item = AlarmItem(0, 0, timestamp=timestamp)
+            if alarm_item is not None:
+                new_timestamp = alarm_item.timestamp
+            else:
+                success = False
+
+        # Apply the new timestamp if changes have been successful
+        if success is True:
+            individual_success = alarms_table.update(
+                dict(id=alarm_id, timestamp=new_timestamp), ['id'])
+            if not individual_success:
+                success = False
+
+        return success
+
+    def update_alarm(self, alarm):
+        """
+        Updates an alarm in the database, and update the timestamp in the alarm
+        instance.
+        :param alarm: AlarmItem instance of the alarm to update.
+        :return: Boolean indicating the success of the 'update' operation.
+        """
+        if isinstance(alarm, AlarmItem):
+            alarms_table = self.__connect_alarms()
+            alarm.timestamp = int(round(time.time()))
+            success = alarms_table.update(
+                dict(id=alarm.id_, hour=alarm.hour, minute=alarm.minute,
+                     monday=alarm.monday, tuesday=alarm.tuesday,
+                     wednesday=alarm.wednesday, thursday=alarm.thursday,
+                     friday=alarm.friday, saturday=alarm.saturday,
+                     sunday=alarm.sunday, enabled=alarm.enabled,
+                     label=alarm.label, timestamp=alarm.timestamp),
+                ['id'])
+        else:
+            success = False
 
         return success
 

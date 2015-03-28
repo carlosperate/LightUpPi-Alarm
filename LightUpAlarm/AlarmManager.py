@@ -5,7 +5,11 @@
 # Copyright (c) 2015 carlosperate https://github.com/carlosperate/
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
-# Full description goes here
+# Alarm management system. It saves alarms into a database using the AlarmDb
+# class and launches a running thread per active alarm using the AlarmThread
+# class.
+# It also provides access to the Alarm settings (snooze time, and alarm
+# pre-alert time).
 #
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
@@ -27,7 +31,7 @@ class AlarmManager(object):
     """
 
     #
-    # constructor
+    # Instance initialiser
     #
     def __init__(self, alarm_callback=None):
         """
@@ -112,8 +116,10 @@ class AlarmManager(object):
     def get_alarm(alarm_id):
         """
         Get the alarm with the given ID from the database.
-        :param alarm_id: Integer to indicate the primary key of the Alarm to get.
-        :return: AlarmItem with the alarm data, or None if id could not be found.
+        :param alarm_id: Integer to indicate the primary key of the Alarm to
+                         get.
+        :return: AlarmItem with the alarm data, or None if id could not be
+                 found.
         """
         return AlarmDb().get_alarm(alarm_id)
 
@@ -156,7 +162,7 @@ class AlarmManager(object):
         :param label: Strong to contain the alarm label.
         :return: Integer indicating the newly created alarm ID, or None if fail.
         """
-        alarm = AlarmItem(hour, minute, days, enabled, label)
+        alarm = AlarmItem(hour, minute, days=days, enabled=enabled, label=label)
         if alarm is not None:
             alarm.id_ = AlarmDb().add_alarm(alarm)
             if alarm.id_ is not None:
@@ -170,10 +176,11 @@ class AlarmManager(object):
         purposes.
         """
         self.add_alarm(
-            07, 10, (True, True, True, True, True, False, False), False, 'one')
+            07, 10, days=(True, True, True, True, True, False, False),
+            enabled=False, label='one')
         self.add_alarm(
-            10, 30, (False, False, False, False, False, True, True), False,
-            'two')
+            10, 30, days=(False, False, False, False, False, True, True),
+            enabled=False, label='two')
 
     #
     # member methods to edit alarms
@@ -182,6 +189,7 @@ class AlarmManager(object):
                    enabled=None, label=None):
         """
         Edits an alarm from the database with the input data.
+        :param alarm_id: Integer to indicate the ID of the alarm to be edited.
         :param hour: Integer to indicate the alarm hour.
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
@@ -223,6 +231,21 @@ class AlarmManager(object):
 
         return success
 
+    @staticmethod
+    def update_alarm(alarm):
+        """
+        Updates the alarm in the database with an AlarmItem input data.
+        This method also updates the timestamp stored into the instance passed
+        as an argument.
+        :param alarm: AlarmItem instance with data to update the database.
+        :return: Boolean indicating the success of the 'update' operation.
+        """
+        if isinstance(alarm, AlarmItem):
+            success = AlarmDb().update_alarm(alarm)
+        else:
+            success = False
+        return success
+
     def delete_alarm(self, alarm_id):
         """
         Remove the alarm with the given ID from the database and remove its
@@ -259,7 +282,7 @@ class AlarmManager(object):
         Takes an input alarm and determines if is active, in order to be
         launched as an alarm thread, or if a thread should be changed due to
         the new alarm data.
-        Maintains the thread list updated with the runningalarms.
+        Maintains the thread list updated with the running alarms.
         :param alarm: AlarmItem to launch, edited, or stop thread.
         :return: Boolean indicating if Alarm Thread is running.
         """
