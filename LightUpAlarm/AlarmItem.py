@@ -30,7 +30,7 @@ class AlarmItem(object):
         timestamp: Timestamp, in seconds since 1970, of the last time the alarm
                    was modified. This is stored and read from the storage
                    database, so this class does not set the value without an
-                   input.
+                   input (stays as None).
     """
 
     #
@@ -38,7 +38,7 @@ class AlarmItem(object):
     #
     def __new__(cls, hour, minute,
                 days=(False, False, False, False, False, False, False),
-                enabled=True, label='', timestamp=0, alarm_id=None):
+                enabled=True, label='', timestamp=None, alarm_id=None):
         """
         This is the class constructor. We need to initialise the class instance
         here instead of in __init__ because the accessors input sanitation is
@@ -49,6 +49,9 @@ class AlarmItem(object):
         :param minute: Integer to indicate the alarm minute.
         :param days: 7-item list of booleans to indicate repeat weekdays.
         :param enabled: Boolean to indicate alarm enabled state.
+        :param timestamp: Time, in seconds since 1970, that this alarm was last
+                          modified. This value can be added in order to be
+                          able to synchronise alarms between different systems.
         :param alarm_id: Integer to indicate the Alarm ID
         :return: instance of the AlarmItem class. Returns None if input data is
                 invalid.
@@ -74,7 +77,7 @@ class AlarmItem(object):
         # Contains the label string
         instance.__label = ''
         # Contains the timestamp of the last time it was modified
-        instance.__timestamp = 0
+        instance.__timestamp = None
 
         # Assigning values using accessors with input sanitation
         instance.hour = hour
@@ -82,7 +85,8 @@ class AlarmItem(object):
         instance.repeat = days
         instance.enabled = enabled
         instance.label = label
-        instance.timestamp = timestamp
+        if timestamp is not None:
+            instance.timestamp = timestamp
         if alarm_id is not None:
             instance.id_ = alarm_id
 
@@ -111,7 +115,7 @@ class AlarmItem(object):
 
     def __init__(self, hour, minute,
                  days=(False, False, False, False, False, False, False),
-                 enabled=True, label='', timestamp=0, alarm_id=None):
+                 enabled=True, label='', timestamp=None, alarm_id=None):
         """
         Any additional initialisation will go here. Nothing at the moment.
         Keep in mind all data has already been initialised in the __new__

@@ -150,7 +150,7 @@ class AlarmManager(object):
     #
     def add_alarm(self, hour, minute,
                   days=(False, False, False, False, False, False, False),
-                  enabled=True, label=''):
+                  enabled=True, label='', timestamp=None):
         """
         Adds an alarm to the database with the input values.
         If saved successfully it is sent to __set_alarm_thread to see if it
@@ -160,9 +160,14 @@ class AlarmManager(object):
         :param days: 7-item list of booleans to indicate repeat weekdays.
         :param enabled: Boolean to indicate the alarm enabled state.
         :param label: Strong to contain the alarm label.
+        :param timestamp: Time, in seconds since 1970, that this alarm was last
+                          modified. This value can be added in order to be
+                          able to synchronise alarms between different systems.
         :return: Integer indicating the newly created alarm ID, or None if fail.
         """
-        alarm = AlarmItem(hour, minute, days=days, enabled=enabled, label=label)
+        alarm = AlarmItem(
+            hour, minute, days=days, enabled=enabled, label=label,
+            timestamp=timestamp)
         if alarm is not None:
             alarm.id_ = AlarmDb().add_alarm(alarm)
             if alarm.id_ is not None:
@@ -189,6 +194,7 @@ class AlarmManager(object):
                    enabled=None, label=None):
         """
         Edits an alarm from the database with the input data.
+        A new timestamp is set by the AlarmDb class if the edit is successful.
         :param alarm_id: Integer to indicate the ID of the alarm to be edited.
         :param hour: Integer to indicate the alarm hour.
         :param minute: Integer to indicate the alarm minute.
@@ -197,33 +203,12 @@ class AlarmManager(object):
         :param label: Strong to contain the alarm label.
         :return: Boolean indicating the success of the 'edit' operation.
         """
-        success = True
         db = AlarmDb()
-        # Parse optional parameters
-        if hour is not None:
-            individual_success = db.edit_alarm(alarm_id, hour=hour)
-            if not individual_success:
-                success = False
-        # Parse minute variable
-        if minute is not None:
-            individual_success = db.edit_alarm(alarm_id, minute=minute)
-            if not individual_success:
-                success = False
-        # Parse days variable
-        if days is not None:
-            individual_success = db.edit_alarm(alarm_id, days=days)
-            if not individual_success:
-                success = False
-        # Parse enabled variable
-        if enabled is not None:
-            individual_success = db.edit_alarm(alarm_id, enabled=enabled)
-            if not individual_success:
-                success = False
-        # Parse label variable
-        if label is not None:
-            individual_success = db.edit_alarm(alarm_id, label=label)
-            if not individual_success:
-                success = False
+        # As the default values for AlarmDb.edit_alarm are all None as well we
+        # can send all through as is.
+        success = db.edit_alarm(
+            alarm_id,  hour=hour, minute=minute, days=days, enabled=enabled,
+            label=label)
 
         # If a successful edit was carried, then make sure the alarm is launched
         if success is True:

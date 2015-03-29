@@ -64,7 +64,7 @@ class AlarmItemTestCase(unittest.TestCase):
         for day in alarm_test.repeat:
             self.assertEqual(alarm_test.repeat[day], False)
         self.assertEqual(alarm_test.label, '')
-        self.assertEqual(alarm_test.timestamp, 0)
+        self.assertIsNone(alarm_test.timestamp)
 
         # Check constructor with minimum arguments + repeat days
         alarm_test = AlarmItem(hour, minute, days=days)
