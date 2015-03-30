@@ -2,14 +2,17 @@
 #
 # Class to define Alarm data.
 #
-# Copyright (c) 2015 carlosperate https://github.com/carlosperate/
+# Copyright (c) 2015 carlosperate http://carlosperate.github.io
+#
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
 from __future__ import unicode_literals, absolute_import, print_function
-from __builtin__ import property
 import collections
-import types
 import sys
+try:
+    from LightUpAlarm.Py23Compatibility import *
+except ImportError:
+    from Py23Compatibility import Py23Compatibility
 
 
 class AlarmItem(object):
@@ -56,8 +59,7 @@ class AlarmItem(object):
         :return: instance of the AlarmItem class. Returns None if input data is
                 invalid.
         """
-        instance = object.__new__(
-            cls, hour, minute, days, enabled, label, alarm_id)
+        instance = object.__new__(cls)
         # ID is only created at first save into db
         instance.__id = None
         # Alarm time
@@ -150,7 +152,7 @@ class AlarmItem(object):
         Sets id value. Must be a positive integer.
         :param new_id: new ID for the alarm instance.
         """
-        if isinstance(new_id, types.IntType) and new_id >= 0:
+        if isinstance(new_id, int_type) and new_id >= 0:
             self.__id = new_id
         else:
             print('ERROR: Provided AlarmItem().id type is not a positive ' +
@@ -169,7 +171,7 @@ class AlarmItem(object):
         Ensure new value is a boolean before setting the enabled state.
         :param new_enabled: new enabled state for the alarm instance.
         """
-        if isinstance(new_enabled, types.BooleanType):
+        if isinstance(new_enabled, bool_type):
             self.__enabled = new_enabled
         else:
             print('ERROR: Provided AlarmItem().enabled type is not a boolean' +
@@ -188,7 +190,7 @@ class AlarmItem(object):
         Checks input is an integer is a value between 0 - 59.
         :param new_minute: new alarm minutes for the alarm instance.
         """
-        if isinstance(new_minute, types.IntType):
+        if isinstance(new_minute, int_type):
             if 0 <= new_minute < 60:
                 self.__minute = new_minute
             else:
@@ -211,7 +213,7 @@ class AlarmItem(object):
         Checks input is an integer and a value between 0 - 23.
         :param new_hour: new alarm hours for the alarm instance.
         """
-        if isinstance(new_hour, types.IntType):
+        if isinstance(new_hour, int_type):
             if 0 <= new_hour < 24:
                 self.__hour = new_hour
             else:
@@ -235,7 +237,7 @@ class AlarmItem(object):
         :param new_label: new label for the alarm instance.
         """
         try:
-            self.__label = unicode(new_label)
+            self.__label = str(new_label)
         except Exception:
             print('ERROR: Provided AlarmItem().label is not convertible to ' +
                   'a string: %s!' % new_label, file=sys.stderr)
@@ -254,7 +256,7 @@ class AlarmItem(object):
         Even at 32bit this should last until the year 2038.
         :param new_timestamp: new ID for the alarm instance.
         """
-        if isinstance(new_timestamp, types.IntType) and new_timestamp >= 0:
+        if isinstance(new_timestamp, int_type) and new_timestamp >= 0:
             self.__timestamp = new_timestamp
         else:
             print('ERROR: Provided AlarmItem().timestamp type is not a ' +
@@ -285,7 +287,7 @@ class AlarmItem(object):
         """
         if len(new_repeat) == 7:
             for day in new_repeat:
-                if not isinstance(day, types.BooleanType):
+                if not isinstance(day, bool_type):
                     print('ERROR: All items in the AlarmItem().repeat list ' +
                           'have to be Booleans!', file=sys.stderr)
                     break
@@ -304,7 +306,7 @@ class AlarmItem(object):
         return self.__repeat['Monday']
 
     def __set_monday(self, new_monday):
-        if isinstance(new_monday, types.BooleanType):
+        if isinstance(new_monday, bool_type):
             self.__repeat['Monday'] = new_monday
         else:
             print('ERROR: New value for the AlarmItem().monday variable has ' +
@@ -316,7 +318,7 @@ class AlarmItem(object):
         return self.__repeat['Tuesday']
 
     def __set_tuesday(self, new_tuesday):
-        if isinstance(new_tuesday, types.BooleanType):
+        if isinstance(new_tuesday, bool_type):
             self.__repeat['Tuesday'] = new_tuesday
         else:
             print('ERROR: New value for the AlarmItem().tuesday variable has ' +
@@ -328,7 +330,7 @@ class AlarmItem(object):
         return self.__repeat['Wednesday']
 
     def __set_wednesday(self, new_wednesday):
-        if isinstance(new_wednesday, types.BooleanType):
+        if isinstance(new_wednesday, bool_type):
             self.__repeat['Wednesday'] = new_wednesday
         else:
             print('ERROR: New value for the AlarmItem().wednesday variable ' +
@@ -340,7 +342,7 @@ class AlarmItem(object):
         return self.__repeat['Thursday']
 
     def __set_thursday(self, new_thursday):
-        if isinstance(new_thursday, types.BooleanType):
+        if isinstance(new_thursday, bool_type):
             self.__repeat['Thursday'] = new_thursday
         else:
             print('ERROR: New value for the AlarmItem().thursday variable ' +
@@ -352,7 +354,7 @@ class AlarmItem(object):
         return self.__repeat['Friday']
 
     def __set_friday(self, new_friday):
-        if isinstance(new_friday, types.BooleanType):
+        if isinstance(new_friday, bool_type):
             self.__repeat['Friday'] = new_friday
         else:
             print('ERROR: New value for the AlarmItem().friday variable has ' +
@@ -364,7 +366,7 @@ class AlarmItem(object):
         return self.__repeat['Saturday']
 
     def __set_saturday(self, new_saturday):
-        if isinstance(new_saturday, types.BooleanType):
+        if isinstance(new_saturday, bool_type):
             self.__repeat['Saturday'] = new_saturday
         else:
             print('ERROR: New value for the AlarmItem().saturday variable ' +
@@ -376,7 +378,7 @@ class AlarmItem(object):
         return self.__repeat['Sunday']
 
     def __set_sunday(self, new_sunday):
-        if isinstance(new_sunday, types.BooleanType):
+        if isinstance(new_sunday, bool_type):
             self.__repeat['Sunday'] = new_sunday
         else:
             print('ERROR: New value for the AlarmItem().sunday variable ' +

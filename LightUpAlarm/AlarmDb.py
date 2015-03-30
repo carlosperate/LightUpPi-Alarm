@@ -2,7 +2,8 @@
 #
 # Manages an Sqlite database for the alarms
 #
-# Copyright (c) 2015 carlosperate https://github.com/carlosperate/
+# Copyright (c) 2015 carlosperate http://carlosperate.github.io
+#
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
 # This class creates an Sqlite database with an 'alarms' table to contain all
@@ -32,11 +33,17 @@ import json
 import time
 import types
 import dataset
-import StringIO
+# StringIO embedded into io in python 3
+try:
+    import StringIO
+except ImportError:
+    from io import StringIO
 try:
     from LightUpAlarm.AlarmItem import AlarmItem
+    from LightUpAlarm.Py23Compatibility import *
 except ImportError:
     from AlarmItem import AlarmItem
+    from Py23Compatibility import Py23Compatibility
 
 
 class AlarmDb(object):
@@ -51,7 +58,7 @@ class AlarmDb(object):
         sqlite database filename.
         :param db_name: Optional string indicating the database filename.
         """
-        if isinstance(db_name, str) or isinstance(db_name, basestring):
+        if isinstance(db_name, str_type):
             self.db_file = 'sqlite:///%s.db' % db_name
         else:
             if db_name is not None:

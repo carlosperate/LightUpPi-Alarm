@@ -2,7 +2,8 @@
 #
 # General management class for the LightUp Alarm package.
 #
-# Copyright (c) 2015 carlosperate https://github.com/carlosperate/
+# Copyright (c) 2015 carlosperate http://carlosperate.github.io
+#
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
 # Alarm management system. It saves alarms into a database using the AlarmDb
@@ -19,10 +20,14 @@ try:
     from LightUpAlarm.AlarmDb import AlarmDb
     from LightUpAlarm.AlarmItem import AlarmItem
     from LightUpAlarm.AlarmThread import AlarmThread
+    from LightUpAlarm.Py23Compatibility import *
 except ImportError:
     from AlarmDb import AlarmDb
     from AlarmItem import AlarmItem
     from AlarmThread import AlarmThread
+    from Py23Compatibility import Py23Compatibility
+
+
 
 
 class AlarmManager(object):
@@ -134,13 +139,13 @@ class AlarmManager(object):
         # now_time[3] = tm_hour, now_time[4] = tm_minute, now_time[6] = tm_wday
         now_time = time.localtime(time.time())
 
-        all_alarms = AlarmManager.get_all_enabled_alarms()
+        all_alarms = AlarmManager.get_all_active_alarms()
         if len(all_alarms) > 0:
             for alarm in all_alarms:
                 alarm.next_alert = alarm.minutes_to_alert(
                     now_time[3], now_time[4], now_time[6])
             sorted_alarms = sorted(
-                all_alarms, key=operator.attrgetter('next_alert'))
+                all_alarms, key=lambda a: a.next_alert)
             return sorted_alarms[0]
         else:
             return None
@@ -181,7 +186,7 @@ class AlarmManager(object):
         purposes.
         """
         self.add_alarm(
-            07, 10, days=(True, True, True, True, True, False, False),
+            7, 10, days=(True, True, True, True, True, False, False),
             enabled=False, label='one')
         self.add_alarm(
             10, 30, days=(False, False, False, False, False, True, True),
