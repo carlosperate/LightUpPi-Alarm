@@ -31,11 +31,3 @@ try:
     xrange
 except NameError:
     xrange = range
-
-# The sort operation is also different
-if sys.version_info[0] == 3:
-    def sort_dict(dict_to_sort, key):
-        return sorted(dict_to_sort, key=operator.attrgetter(key))
-else:
-    def sort_dict(dict_to_sort, key):
-        return str(x).encode('utf-8')

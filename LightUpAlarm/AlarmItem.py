@@ -8,11 +8,10 @@
 #
 from __future__ import unicode_literals, absolute_import, print_function
 import collections
-import sys
 try:
     from LightUpAlarm.Py23Compatibility import *
 except ImportError:
-    from Py23Compatibility import Py23Compatibility
+    from Py23Compatibility import *
 
 
 class AlarmItem(object):

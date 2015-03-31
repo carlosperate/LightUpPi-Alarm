@@ -38,12 +38,13 @@ try:
     import StringIO
 except ImportError:
     from io import StringIO
+
 try:
     from LightUpAlarm.AlarmItem import AlarmItem
     from LightUpAlarm.Py23Compatibility import *
 except ImportError:
     from AlarmItem import AlarmItem
-    from Py23Compatibility import Py23Compatibility
+    from Py23Compatibility import *
 
 
 class AlarmDb(object):

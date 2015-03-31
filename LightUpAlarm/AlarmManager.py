@@ -25,9 +25,7 @@ except ImportError:
     from AlarmDb import AlarmDb
     from AlarmItem import AlarmItem
     from AlarmThread import AlarmThread
-    from Py23Compatibility import Py23Compatibility
-
-
+    from Py23Compatibility import *
 
 
 class AlarmManager(object):
