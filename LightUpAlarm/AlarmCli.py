@@ -2,7 +2,8 @@
 #
 # Command line interface for the LightUpAlarm package.
 #
-# Copyright (c) 2015 carlosperate https://github.com/carlosperate/
+# Copyright (c) 2015 carlosperate http://carlosperate.github.io
+#
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
 # The command line interface uses 80 vertical columns, exactly 80 in a lot of
@@ -40,7 +41,7 @@ class AlarmCli(cmd.Cmd):
     #
     def __init__(self, alarm_mgr=None, callback=None):
         """
-        Instance constructor.
+        Instance initialiser.
         Creates an AlarmManager instance and sets the alarm alert callback.
         """
         cmd.Cmd.__init__(self)
@@ -82,27 +83,25 @@ class AlarmCli(cmd.Cmd):
     #
     # command methods
     #
-    def do_alarms(self, empty_str):
+    def do_alarms(self, full_str):
         """Help alarms:
         Displays all the alarms.
+        Use the keyword 'full' for additional info.
         """
-        self.display_alarms()
-        pass
-
-    def do_labels(self, empty_str):
-        """Help active:
-        Displays all the alarms with their corresponding label.
-        """
-        all_alarms = self.alarm_mgr.get_all_alarms()
-        print('All Alarm labels:\n' + AlarmCli.dashes_line)
-        if not all_alarms:
-            print('\tThere are not saved alarms.')
+        if full_str == '':
+            self.display_alarms()
+        elif full_str == 'full':
+            all_alarms = self.alarm_mgr.get_all_alarms()
+            print('All Alarms:\n' + AlarmCli.dashes_line)
+            if not all_alarms:
+                print('\tThere are not saved alarms.')
+            else:
+                for alarm in all_alarms:
+                    print('%s\n              | timestamp: %s      | label: %s\n'
+                          % (alarm, alarm.timestamp, alarm.label))
+            print('\n')  # Empty line for visual spacing
         else:
-            for alarm in all_alarms:
-                if alarm.label is not '':
-                    print('Alarm ID %3s: %s' % (alarm.id_, alarm.label))
-                else:
-                    print('Alarm ID %3s has no label.' % alarm.id_)
+            print('The only command that can follow alarms is "full"')
 
     def do_active(self, empty_str):
         """Help active:
