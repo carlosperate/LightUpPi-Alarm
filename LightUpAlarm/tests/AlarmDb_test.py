@@ -75,16 +75,45 @@ class AlarmDbTestCase(unittest.TestCase):
         """ Adds an entry to the database and deletes it. """
         hour = 13
         minute = 35
+        mock_timestamp = 12341234
+        mock_time.return_value = mock_timestamp
+        adh = AlarmDb(self.db_name)
+
+        # Test an entry with the minimum amount of arguments and check for
+        # default values
+        test_alarm = AlarmItem(hour, minute)
+        test_alarm.id_ = adh.add_alarm(test_alarm)
+        # Test that the alarm object inserted has its member variable edited
+        # with the new timestamp
+        self.assertEqual(mock_timestamp, test_alarm.timestamp)
+        # Check variables with a new alarm with data retrieved directly from db
+        retrieved_alarm = adh.get_alarm(test_alarm.id_)
+        self.assertEqual(hour, retrieved_alarm.hour)
+        self.assertEqual(minute, retrieved_alarm.minute)
+        self.assertEqual(test_alarm.monday, retrieved_alarm.monday)
+        self.assertEqual(test_alarm.tuesday, retrieved_alarm.tuesday)
+        self.assertEqual(test_alarm.wednesday, retrieved_alarm.wednesday)
+        self.assertEqual(test_alarm.thursday, retrieved_alarm.thursday)
+        self.assertEqual(test_alarm.friday, retrieved_alarm.friday)
+        self.assertEqual(test_alarm.saturday, retrieved_alarm.saturday)
+        self.assertEqual(test_alarm.sunday, retrieved_alarm.sunday)
+        self.assertEqual(test_alarm.enabled, retrieved_alarm.enabled)
+        self.assertEqual(test_alarm.label, retrieved_alarm.label)
+        self.assertEqual(mock_timestamp, retrieved_alarm.timestamp)
+
+        # Test with all possible arguments
         days = (False, False, True, False, False, True, False)
         enabled = False
         label = 'Test alarm label'
-        timestamp = 12341234
-        mock_time.return_value = timestamp
-
-        adh = AlarmDb(self.db_name)
-        test_alarm = AlarmItem(hour, minute, days, enabled, label)
+        timestamp = 98765432
+        test_alarm = AlarmItem(
+            hour, minute, days=days, enabled=enabled, label=label,
+            timestamp=timestamp)
         test_alarm.id_ = adh.add_alarm(test_alarm)
+        # Check that the timestamp value from the alarm instance was not
+        # modified with the present (in this case the mocked) timestamp
         self.assertEqual(timestamp, test_alarm.timestamp)
+        # Check variables with a new alarm with data retrieved directly from db
         retrieved_alarm = adh.get_alarm(test_alarm.id_)
         self.assertEqual(hour, retrieved_alarm.hour)
         self.assertEqual(minute, retrieved_alarm.minute)

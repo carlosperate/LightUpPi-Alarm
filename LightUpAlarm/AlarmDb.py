@@ -302,8 +302,8 @@ class AlarmDb(object):
         # 1970) as the timestamp if not defined already
         if alarm_item.timestamp is None:
             alarm_item.timestamp = int(round(time.time()))
-            alarms_table = self.__connect_alarms()
 
+        alarms_table = self.__connect_alarms()
         key = alarms_table.insert(
             dict(hour=alarm_item.hour, minute=alarm_item.minute,
                  monday=alarm_item.monday, tuesday=alarm_item.tuesday,
