@@ -119,8 +119,11 @@ class ServerAlarmAdapter(object):
         if alarm_id is not None:
             retrieved_alarm = self.alarm_mgr.get_alarm(alarm_id)
             return_dict['id'] = alarm_id
-            return_dict['success'] = True
-            return_dict['timestamp'] = retrieved_alarm.timestamp
+            if retrieved_alarm is not None:
+                return_dict['success'] = True
+                return_dict['timestamp'] = retrieved_alarm.timestamp
+            else:
+                return_dict['success'] = False
         else:
             return_dict['success'] = False
         return json.dumps(return_dict, indent=4, separators=(',', ': '))
@@ -143,8 +146,13 @@ class ServerAlarmAdapter(object):
             label=label)
         retrieved_alarm = self.alarm_mgr.get_alarm(alarm_id)
         return_dict = {'dataType': 'Edit alarm',
-                       'success': success,
-                       'timestamp': retrieved_alarm.timestamp}
+                       'id': alarm_id,
+                       'success': success}
+        if retrieved_alarm is None:
+            return_dict['error'] = 'This alarm does not exists'
+        else:
+            return_dict['timestamp'] = retrieved_alarm.timestamp
+
         return json.dumps(return_dict, indent=4, separators=(',', ': '))
 
     def json_delete_alarm(self, alarm_id):
@@ -167,6 +175,5 @@ class ServerAlarmAdapter(object):
         """
         success = self.alarm_mgr.delete_all()
         return_dict = {'dataType': 'Deleted all alarms',
-                       'id': alarm_id,
                        'success': success}
         return json.dumps(return_dict, indent=4, separators=(',', ': '))
