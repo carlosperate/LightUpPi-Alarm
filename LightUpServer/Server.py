@@ -182,7 +182,7 @@ def add_alarm():
     timestamp = request.args.get('timestamp')
     if timestamp is not None:
         try:
-            timestamp = long(minute)
+            timestamp = long(timestamp)
         except ValueError:
             message = {'error': 'The \'timestamp\' argument must be an integer'}
             return jsonify(message)
@@ -276,6 +276,7 @@ def edit_alarm():
     if success is False:
         return jsonify({'error': sunday})
 
+    alarm_repeat = None
     if any([monday, tuesday, wednesday, thursday, friday, saturday, sunday]):
         alarm_repeat = list(alarm_adapt.get_alarm_repeat(id_))
         if monday is not None:
@@ -293,7 +294,7 @@ def edit_alarm():
         if sunday is not None:
             alarm_repeat[6] = sunday
 
-    # Parsing the enabled argument, if not present or wrong return error message
+    # Parsing the enabled argument, if wrong return error message
     success, enabled = check_boolean("enabled")
     if success is False:
         return jsonify({'error': enabled})
