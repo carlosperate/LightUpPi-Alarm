@@ -114,9 +114,9 @@ class AlarmDb(object):
 
     def set_prealert_time(self, prealert_time):
         """
-        Sets the prealert time (the time before the alarm alert is triggered),
+        Sets the pre-alert time (the time before the alarm alert is triggered),
         used to set some action before the alarm rings.
-        :param prealert_time: Integer, prealert time in minutes.
+        :param prealert_time: Integer, pre-alert time in minutes.
         :return: Boolean indicating the operation success.
         """
         if isinstance(prealert_time, types.IntType) and prealert_time >= 0:
@@ -129,10 +129,10 @@ class AlarmDb(object):
 
     def get_prealert_time(self):
         """
-        Retrieves from the settings table the prealeter time (the time before
+        Retrieves from the settings table the pre-alert time (the time before
         the alarm alert is triggered), used to set some action before the
         alarm rings.
-        :return: Integer, the prealert time in minutes.
+        :return: Integer, the pre-alert time in minutes.
         """
         settings_table = self.__connect_settings()
         settings_dict = settings_table.find_one(id=1)

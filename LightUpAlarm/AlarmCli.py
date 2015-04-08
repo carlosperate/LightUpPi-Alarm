@@ -81,12 +81,12 @@ class AlarmCli(cmd.Cmd):
         return cmd.Cmd.postcmd(self, stop, line)
 
     #
-    # command methods
+    # Alar command methods
     #
     def do_alarms(self, full_str):
         """Help alarms:
         Displays all the alarms.
-        Use the keyword 'full' for additional info.
+        Use the keyword 'full' to display additional info.
         """
         if full_str == '':
             self.display_alarms()
@@ -99,7 +99,6 @@ class AlarmCli(cmd.Cmd):
                 for alarm in all_alarms:
                     print('%s\n              | timestamp: %s      | label: %s\n'
                           % (alarm, alarm.timestamp, alarm.label))
-            print('\n')  # Empty line for visual spacing
         else:
             print('The only command that can follow alarms is "full"')
 
@@ -132,7 +131,7 @@ class AlarmCli(cmd.Cmd):
         """Help add:
         Add an alarm using the format (days follow the 3 letter format):
         'hh mm <enabled/disabled> <days to repeat>'
-        eg. 'add 9 00 enabled Mon Fri'
+        e.g. 'add 9 00 enabled Mon Fri'
             'add 10 30 disabled sat sun'
             'add 7 10 enabled all'
             'add 22 55 disabled'
@@ -217,8 +216,7 @@ class AlarmCli(cmd.Cmd):
         """Help edit command:
         Edit an alarm using the following format:
         'edit <alarm ID> <attribute> <new value>'
-        eg. 'edit <alarm ID> <attribute> <new value>'
-            'edit 3 hour 9'
+        e.g. 'edit 3 hour 9'
             'edit 4 minute 30'
             'edit 7 enabled no'
             'edit 1 repeat mon fri'
@@ -332,7 +330,7 @@ class AlarmCli(cmd.Cmd):
 
     def do_delete(self, alarm_id_string):
         """
-        Delete an alarm identified by its id, or all the alarms. Eg.:
+        Delete an alarm identified by its id, or all the alarms. E.g.:
         'delete 3'
         'delete all'
         """
@@ -359,6 +357,56 @@ class AlarmCli(cmd.Cmd):
             self.display_alarms()
             print('Alarm/s "%s" could not be deleted.' % alarm_id_string)
 
+    #
+    # Settings command methods
+    #
+    def do_snooze(self, new_snooze_str):
+        """Help snooze:
+        Displays the currently set snooze time, or if accompanied by an integer
+        it will change the snooze time and display the new value. E.g.:
+        'snooze'
+        'snooze 5'
+        """
+        snooze_text = 'Snooze time is:'
+        if new_snooze_str:
+            try:
+                snooze_time = int(new_snooze_str)
+            except ValueError:
+                print('To edit the snooze time, the snooze command must be '
+                      'followed a valid number !')
+                return
+            snooze_text = 'New snooze time is:'
+            self.alarm_mgr.set_snooze_time(snooze_time)
+
+        self.display_alarms()
+        print(snooze_text + ' %s' % self.alarm_mgr.get_snooze_time())
+
+    def do_prealert(self, new_prealert_str):
+        """Help prealert:
+        Displays the currently set pre-alert time, (time before the alarm alert
+        is triggered and used to launch any kind of process), or if accompanied
+        by an integer it will change the pre-alert time and display the new
+        value. E.g.:
+        'prealert'
+        'prealert 5'
+        """
+        prealert_text = 'Pre-alert time is:'
+        if new_prealert_str:
+            try:
+                new_prealert_str = int(new_prealert_str)
+            except ValueError:
+                print('To edit the pre-alert time, the prealert command must be'
+                      'followed a valid number !')
+                return
+            prealert_text = 'New pre-alert time is:'
+            self.alarm_mgr.set_prealert_time(new_prealert_str)
+
+        self.display_alarms()
+        print(prealert_text + ' %s' % self.alarm_mgr.get_prealert_time())
+
+    #
+    # General command methods
+    #
     def do_exit(self, empty_str):
         """ Exists the LightUp Alarm program. """
         self.display_alarms()

@@ -60,6 +60,46 @@ class AlarmManager(object):
             self.__set_alarm_thread(alarm)
 
     #
+    # Methods to get an edit settings
+    #
+    @staticmethod
+    def get_snooze_time():
+        """
+        Static method, gets the current set snooze time interval.
+        :return: Integer with the snooze time interval in minutes.
+        """
+        return AlarmDb().get_snooze_time()
+
+    @staticmethod
+    def set_snooze_time(snooze_time):
+        """
+        Static method, sets the current snooze time interval.
+        :param snooze_time: Integer, new snooze time in minutes.
+        :return: Boolean indicating the operation success.
+        """
+        return AlarmDb().set_snooze_time(snooze_time)
+
+    @staticmethod
+    def get_prealert_time():
+        """
+        Static method, gets the prealeter time (the time before the alarm alert
+        is triggered), used to set some action before the alarm rings.
+        :return: Integer, the prealert time in minutes.
+        """
+        return AlarmDb().get_prealert_time()
+
+    @staticmethod
+    def set_prealert_time(prealert_time):
+        """
+        Static method, sets the pre-alert time (the time before the alarm alert
+        is triggered), used to set some action before the alarm rings.
+        :param prealert_time: Integer, pre-alert time in minutes.
+        :return: Boolean indicating the operation success.
+        """
+        return AlarmDb().set_prealert_time(prealert_time)
+
+
+    #
     # static methods to retrieve alarms
     #
     @staticmethod

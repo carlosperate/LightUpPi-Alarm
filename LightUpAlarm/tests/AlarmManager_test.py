@@ -8,6 +8,7 @@
 # The following methods are basically a call to the AlarmDb class and do not
 # need to be tested:
 #  get_all_alarms, get_number_of_alarms, get_all_enabled_alarms, get_alarm,
+#  get_snooze_time, set_snooze_time, get_prealert_time, set_prealert_time
 #
 from __future__ import unicode_literals, absolute_import
 import io
