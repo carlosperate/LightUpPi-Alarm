@@ -2,7 +2,8 @@
 #
 # Entry point for the LightUpAlarm package.
 #
-# Copyright (c) 2015 carlosperate https://github.com/carlosperate/
+# Copyright (c) 2015 carlosperate http://carlosperate.github.io
+#
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
 # Creates an instance of the AlarmCli class and runs it.

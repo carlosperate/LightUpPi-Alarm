@@ -4,7 +4,7 @@ This is a Clock Alarm System, with lights and mains socket switch control for th
 
 It has been modularised into the following packages:
 * __LightUpAlarm__: Completely independent Python package to manage alarms (create, edit, delete, and run alarms).
-* __LightUpHardware__: Controls external hardware to complement the alarm ring, in this case controls the room lights, mains socket switch and, snooze functionality from a physical button.
+* __LightUpHardware__: Controls external hardware to complement the alarm ring, in this case controls the room lights, mains socket switch, and snooze functionality from a physical button.
 * __LightUpServer__: Creates an HTTP server to interface with the LightUpAlarm system using a web interface or JSON (used in the LightUpDroid Android app).
 * __LightUpWeb__: Front-end web interface for the LightUpServer. 
 
@@ -35,12 +35,20 @@ There are two different ways to run LightUpPi Alarm:
    ```
    python main.py -c
    ```
+<img src="http://carlosperate.github.com/LightUpPi-Alarm/screenshots/screenshot_cli_1.png" alt="CLI screenshot" width="60%">
+
+   Instructions about how to use the CLI can be found in the LightUpAlarm package [README](https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md).
 
 2. Or using the web interface, by launching the program with the `-s` flag:
    ```
    python main.py -s
    ```
-   And then pointing your browser to the following adddress: ` http://raspberrypi.local/LightUpPi `
+   And then pointing your browser to the following adddress: ` http://raspberrypi.local/LightUpPi ` or using the [LightUpDroid](https://github.com/carlosperate/LightUpDroid-Alarm) app:
+
+   <img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/clock.png" alt="Clock Screen" width="20%"> 
+<img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/alarms.png" alt="Alarms Screen" width="20%"> 
+<img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/timepicker.png" alt="Timepicker Screen" width="20%"> 
+<img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/settings.png" alt="Settings Screen" width="20%"> 
 
 
 ## License
