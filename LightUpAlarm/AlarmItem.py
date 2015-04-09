@@ -461,3 +461,66 @@ class AlarmItem(object):
 
         # Alarm has no enabled days
         return None
+
+    def diff_alarm(self, min_difference):
+        """
+        Returns an Alarm instance with the same data as the calling alarm with
+        a time difference indicated by the parameter.
+        It edits the label to indicate the time difference.
+        It does not copy the ID nor the timestamp.
+        We are reducing the use case to have a range of -59 to 59 minutes to
+        simplify the code.
+        :para min_difference: Time difference, positive or negative in minutes
+                              from -59 to 59, for the new Alarm.
+        :return: Alarm instance with this data + time difference. Returns None
+                 if there was an issue with the input data
+        """
+        # Input sanitation to given user case
+        if not isinstance(min_difference, int_type):
+            print('ERROR: Provided diff_alarm min_difference type is not an '
+                  'Integer: %s!' % min_difference, file=sys.stderr)
+            return None
+        else:
+            if not (-60 < min_difference < 60):
+                print('ERROR: Provided diff_alarm min_difference is not between'
+                      ' -59 and 59: %s!' % min_difference, file=sys.stderr)
+                return None
+
+        extra_hours = 0
+        extra_days = 0
+
+        new_minute = self.minute + min_difference
+        while new_minute >= 60:
+            new_minute %= 60
+            extra_hours += 1
+        while new_minute < 0:
+            new_minute += 60
+            extra_hours -= 1
+
+        new_hour = self.hour + extra_hours
+        while new_hour >= 24:
+            new_hour %= 24
+            extra_days += 1
+        while new_hour < 0:
+            new_hour += 24
+            extra_days -= 1
+
+        new_days = list(self.repeat)
+        if extra_days < 0:
+            # Move all items up by 1 per day
+            while extra_days < 0:
+                new_days.append(new_days.pop(0))
+                extra_days += 1
+        elif extra_days > 0:
+            # Move all items down by 1 per day, input sanitation protects
+            # against this breaking if extra_days > 6
+            list_to_head = new_days[(len(new_days) - extra_days):]
+            new_days = list_to_head + \
+                new_days[0:(len(new_days) - extra_days)]
+
+        new_label = self.label + \
+            (" (Alarm %s %+d min)" % (self.id_, min_difference))
+
+        alarm_diff = AlarmItem(new_hour, new_minute, days=new_days,
+                               enabled=self.enabled, label=new_label)
+        return alarm_diff

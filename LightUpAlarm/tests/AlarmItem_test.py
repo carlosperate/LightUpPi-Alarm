@@ -474,6 +474,153 @@ class AlarmItemTestCase(unittest.TestCase):
         test_alarm.repeat = (False, False, False, False, False, False, False)
         self.assertFalse(test_alarm.any_day_enabled())
 
+    def test_diff_alarm(self):
+        """ Tests the diff_alarm method returned Alarms. """
+        # Helper function to assert the alarm properties, takes the outer scope
+        # variables directly as we will be reusing them for all tests
+        def assert_diff_alarm(diff_alarm):
+            self.assertEqual(diff_alarm.minute, expected_minute)
+            self.assertEqual(diff_alarm.hour, expected_hour)
+            self.assert_repeat(diff_alarm, expected_days)
+            self.assertEqual(diff_alarm.enabled, test_enabled)
+            self.assertEqual(diff_alarm.label, expected_label)
+            self.assertNotEqual(diff_alarm.timestamp, test_timestamp)
+            self.assertNotEqual(diff_alarm.id_, test_id)
+
+        # First test - 15 minutes to 9 30, so only change in minutes
+        time_diff = -15
+        test_minute = 30
+        test_hour = 9
+        expected_minute = 15
+        expected_hour = 9
+        test_days = (True, False, False, True, False, False, True)
+        expected_days = test_days
+        test_enabled = True
+        test_id = 98
+        test_label = "test label"
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+        test_timestamp = 1234
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Now test + 15 minutes to 9 30, so only change in minutes
+        time_diff = 15
+        test_minute = 30
+        test_hour = 9
+        expected_minute = 45
+        expected_hour = 9
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Now test + 15 minutes to 9 30, so only change in minutes
+        time_diff = 15
+        test_minute = 30
+        test_hour = 9
+        expected_minute = 45
+        expected_hour = 9
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Now test + minutes with hour rollover
+        time_diff = 59
+        test_minute = 10
+        test_hour = 14
+        expected_minute = 9
+        expected_hour = 15
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Now test - minutes with hour rollover
+        time_diff = -59
+        test_minute = 10
+        test_hour = 14
+        expected_minute = 11
+        expected_hour = 13
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Now test + minutes with day rollover
+        time_diff = 30
+        test_minute = 50
+        test_hour = 23
+        expected_minute = 20
+        expected_hour = 0
+        test_days = (True, False, False, True, True, False, True)
+        expected_days = (True, True, False, False, True, True, False)
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Now test - minutes with day rollover
+        time_diff = -30
+        test_minute = 10
+        test_hour = 0
+        expected_minute = 40
+        expected_hour = 23
+        test_days = (True, False, False, True, True, False, True)
+        expected_days = (False, False, True, True, False, True, True)
+        expected_label = test_label + \
+            (" (Alarm %s %+d min)" % (test_id, time_diff))
+
+        test_alarm = AlarmItem(
+            test_hour, test_minute, days=test_days, enabled=test_enabled,
+            timestamp=test_timestamp, label=test_label, alarm_id=test_id)
+        assert_diff_alarm(test_alarm.diff_alarm(time_diff))
+
+        # Test input sanitation capturing stderr to check
+        with mock.patch('sys.stderr', new=io.StringIO()) as test_srderr:
+            # First ensure that successful set does not write to stderr
+            self.assertEqual(test_srderr.getvalue(), '')
+            time_diff = 0
+            test_alarm.diff_alarm(time_diff)
+            self.assertEqual(test_srderr.getvalue(), '')
+
+            # Lower boundary
+            time_diff = -60
+            test_alarm.diff_alarm(time_diff)
+            self.assert_stderr(test_srderr)
+
+            # Upper boundary
+            time_diff = 60
+            test_alarm.diff_alarm(time_diff)
+            self.assert_stderr(test_srderr)
+
+            # other types instead of integer
+            time_diff = 0.1
+            test_alarm.diff_alarm(time_diff)
+            self.assert_stderr(test_srderr)
+            time_diff = "0"
+            test_alarm.diff_alarm(time_diff)
+            self.assert_stderr(test_srderr)
+
 
 if __name__ == '__main__':
     unittest.main()

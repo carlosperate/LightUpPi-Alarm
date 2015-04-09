@@ -57,6 +57,8 @@ class AlarmDb(object):
         """
         AlarmDbHelper initialiser. It can take an argument to indicate the
         sqlite database filename.
+        By default if no settings are found in the db it wll add the snooze
+        time to be 3 min, and the pre-alert time to be 15 min.
         :param db_name: Optional string indicating the database filename.
         """
         if isinstance(db_name, str_type):
