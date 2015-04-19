@@ -12,7 +12,6 @@
 #   https://objectpartners.com/2014/03/25/a-groovy-time-with-upnp-and-wemo/
 #
 import socket
-from time import sleep
 from xml.dom import minidom
 import xml.etree.ElementTree as et
 try:
@@ -21,8 +20,8 @@ except ImportError:
     from http.client import HTTPConnection
 
 
-class WemoSwitch():
-    """ Sends and receives UPnP messages to a Belkin Wemo."""
+class WemoSwitch(object):
+    """ Sends and receives UPnP messages to a Belkin Wemo. """
 
     ERROR_STATE = -1
 
@@ -83,10 +82,15 @@ class WemoSwitch():
     # metaclass methods
     #
     def __init__(self, server):
-        """ Takes two arguments: a wemo switch's ip and port. """
+        """
+        Creates an instance of the class and attempts to connected to the switch
+        within the predefine port range.
+        :param server: String with the IP of the Belkin Wemo Switch.
+        """
         self.server = server
         self.connected = False
         self.port = 49151
+
         # Wemo ports can change, most user list ports in the range 49152-49155,
         # so do a quick connection check and rotate if it fails
         response_status = 0
@@ -98,21 +102,29 @@ class WemoSwitch():
                 response = conn.getresponse()
                 response_status = response.status
             except socket.timeout:
-                print('timeout port %s' % self.port)
+                #print('timeout port %s' % self.port)
+                pass
         conn.close()
+
+        # Check if the connection was successful and set it into self.connected
         if response_status == 200:
             self.connected = True
-            print("Created wemo switch on %s:%s" % (self.server, self.port))
         else:
-            self.connected = True
+            self.connected = False
             self.port = WemoSwitch.ERROR_STATE
-            print("Unable to connect to Switch on %s" % self.server)
 
     def __request(self, body, headers):
+        """
+        Creates an HTTP post request to the Switch with the given body and
+        headers.
+        :param body: POST message body
+        :param headers: POST message headers
+        :return: Boolean ON state of the switch. Returns -1 for Error state.
+        """
         conn = HTTPConnection(self.server, self.port)
         conn.request("POST", "/upnp/control/basicevent1", body, headers)
         response = conn.getresponse()
-        state = -1
+        state = WemoSwitch.ERROR_STATE
         if response.status == 200:
             # Parse the received XML and search for 'BinaryState' element
             tree = et.fromstring(response.read().decode("utf-8"))
@@ -123,10 +135,20 @@ class WemoSwitch():
                 state = WemoSwitch.ERROR_STATE
         conn.close()
         # 0 = off, 1 = on, -1 or Error = error
-        print('The switch state is: %s' % state)
+        if state == '1':
+            state = True
+        elif state == '0':
+            state = False
+        else:
+            state = WemoSwitch.ERROR_STATE
         return state
 
-    def get_status(self):
+    def get_state(self):
+        """
+        Requests the state of the Switch.
+        :return: Boolean indicating the ON state of the switch, or if an error
+                 occurred it returns WemoSwitch.ERROR_STATE (-1).
+        """
         if self.connected is True:
             return self.__request(
                 WemoSwitch.body_status, WemoSwitch.headers_get)
@@ -134,30 +156,23 @@ class WemoSwitch():
             return WemoSwitch.ERROR_STATE
 
     def turn_on(self):
+        """
+        Turns on the Switch.
+        :return: Boolean indicating the ON state of the switch, or if an error
+                 occurred it returns WemoSwitch.ERROR_STATE (-1).
+        """
         if self.connected is True:
             return self.__request(WemoSwitch.body_on, WemoSwitch.headers_set)
         else:
             return WemoSwitch.ERROR_STATE
 
     def turn_off(self):
+        """
+        Turns the switch off.
+        :return: Boolean indicating the ON state of the switch, or if an error
+                 occurred it returns WemoSwitch.ERROR_STATE (-1).
+        """
         if self.connected is True:
             return self.__request(WemoSwitch.body_off, WemoSwitch.headers_set)
         else:
             return WemoSwitch.ERROR_STATE
-
-
-if __name__ == '__main__':
-    # On/Off test
-    switch = WemoSwitch('192.168.0.16')
-    counter = 0
-    while (switch.connected is False) and (counter < 3):
-        sleep(2)
-        switch = WemoSwitch('192.168.0.16')
-        counter += 1
-    switch.get_status()
-    switch.turn_on()
-    switch.get_status()
-    sleep(5)
-    switch.get_status()
-    switch.turn_off()
-    switch.get_status()

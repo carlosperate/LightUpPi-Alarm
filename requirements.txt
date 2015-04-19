@@ -1,5 +1,3 @@
-LightUpPi Alarm
 Flask>=0.10.1
 dataset>=0.5
 unicornhat>=2.0.2
-ouimeaux>=0.7.9
