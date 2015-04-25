@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"
->
+      xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="https://www.facebook.com/2008/fbml">
 <head>
     <title>LightUp Alarm - Embedded Log</title>
     <!-- Using the latest rendering mode for IE -->
@@ -12,14 +13,14 @@
 
 <link rel="canonical" href="http://www.embeddedlog.com/LightUpPi-Alarm/index.html">
 
-        <meta name="author" content="Carlos Perate" />
-        <meta name="description" content="This is a Clock Alarm System, with lights and mains socket switch control for the Raspberry Pi and Android. The system is made of two complementary projects: LightUpPi Alarm: The Alarm system running in a Raspberry Pi. It controls all the hardware triggered for the alarm alert, and provides multiple ways to interface with the system (Command line, web front and server backend). LightUpDroid Alarm: An Android alarm application. It connects to the LightUpPi Alarm server to synchronise alarms, but it is capable to trigger its local alarms without a connection to the LightUpPi Raspberry Pi system. LightUpPi It has been modularised into the following packages: LightUpAlarm: Completely independent Python package to manage alarms (create, edit, delete, and run alarms). LightUpHardware: Controls external hardware to complement the alarm ring, in this case controls the room lights, mains socket switch, and snooze functionality from a physical button. LightUpServer: Creates an HTTP ..." />
+        <meta name="author" content="carlosperate" />
+        <meta name="description" content="This is a Clock Alarm System running on a Raspberry Pi. It has sunrise lighting, coffee machine control, physical snooze button, and an Android companion app. The system is made of two complementary projects: LightUpPi Alarm: The Alarm system running on a Raspberry Pi. It controls all the hardware triggered ..." />
 
     <meta property="og:site_name" content="Embedded Log" />
     <meta property="og:type" content="article"/>
     <meta property="og:title" content="LightUp Alarm"/>
     <meta property="og:url" content="http://www.embeddedlog.com/LightUpPi-Alarm/index.html"/>
-    <meta property="og:description" content="This is a Clock Alarm System, with lights and mains socket switch control for the Raspberry Pi and Android. The system is made of two complementary projects: LightUpPi Alarm: The Alarm system running in a Raspberry Pi. It controls all the hardware triggered for the alarm alert, and provides multiple ways to interface with the system (Command line, web front and server backend). LightUpDroid Alarm: An Android alarm application. It connects to the LightUpPi Alarm server to synchronise alarms, but it is capable to trigger its local alarms without a connection to the LightUpPi Raspberry Pi system. LightUpPi It has been modularised into the following packages: LightUpAlarm: Completely independent Python package to manage alarms (create, edit, delete, and run alarms). LightUpHardware: Controls external hardware to complement the alarm ring, in this case controls the room lights, mains socket switch, and snooze functionality from a physical button. LightUpServer: Creates an HTTP ..." />
+    <meta property="og:description" content="This is a Clock Alarm System running on a Raspberry Pi. It has sunrise lighting, coffee machine control, physical snooze button, and an Android companion app. The system is made of two complementary projects: LightUpPi Alarm: The Alarm system running on a Raspberry Pi. It controls all the hardware triggered ..." />
 
 
     <!-- Bootstrap -->
@@ -57,25 +58,12 @@ Embedded Log            </a>
                             <li class="active"><a href="http://www.embeddedlog.com/LightUpPi-Alarm/index.html">
                              LightUp Alarm
                             </a></li>
-                            <li><a href="http://www.embeddedlog.com/LightUpDroid-Alarm/index.html">
-                             LightUpDroid Alarm
-                            </a></li>
                             <li><a href="http://www.embeddedlog.com/PebbleQuickHue/index.html">
                              QuickHue for Pebble
                             </a></li>
                         </ul>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Categories<span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li >
-                                <a href="http://www.embeddedlog.com/category/blog.html">Blog</a>
-                            </li>
-                            <li >
-                                <a href="http://www.embeddedlog.com/category/test-cat.html">Test cat</a>
-                            </li>
-                        </ul>
-                    </li>
+                    <li><a href="http://www.embeddedlog.com/category/blog.html">Blog</a></li>
                     <li><a href="http://www.embeddedlog.com/about/index.html">About</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -101,7 +89,7 @@ Embedded Log            </a>
             rgba(0, 0, 0, 0.5),
             rgba(0, 0, 0, 0)
         ),
-        url("http://www.embeddedlog.com/images/ardublockly/ardublockly_banner.png");
+        url("http://www.embeddedlog.com/images/banners/ardublockly_banner.png");
     }
     .carousel-two{
         background-image:
@@ -109,7 +97,7 @@ Embedded Log            </a>
             rgba(0, 0, 0, 0.5),
             rgba(0, 0, 0, 0)
         ),
-        url("http://www.embeddedlog.com/images/banner.jpg");
+        url("http://www.embeddedlog.com/images/banners/default_banner.jpg");
     }
     .carousel-three{
         background-image:
@@ -117,7 +105,7 @@ Embedded Log            </a>
             rgba(0, 0, 0, 0.5),
             rgba(0, 0, 0, 0)
         ),
-        url("http://www.embeddedlog.com/images/");
+        url("http://www.embeddedlog.com/images/banners/quickhue_banner.png");
     }
 </style>
 
@@ -153,12 +141,12 @@ Embedded Log            </a>
                     <div class="table_div">
                         <div class="table_row_text">
                             <a href="http://www.embeddedlog.com/LightUp-Alarm/index.html"><h2>LightUp Alarm</h2>
-                            Raspberry Pi &amp; Android Alarm system with sunrise and other hardware control</a>
+                            Raspberry Pi Alarm Clock with sunrise light, coffee machine control, physical snooze button, and Android companion app</a>
                         </div>
                         <div class="table_row_buttons">
+                            <a class="btn btn-primary" href="https://github.com/carlosperate/LightUpPi-Alarm/archive/master.zip"><span class="fa fa-linux"></span>Raspberry Pi Software</a>
                             <a class="btn btn-primary" href="https://github.com/carlosperate/LightUpPi-Alarm/releases"><span class="fa fa-android"></span>Android App</a>
                             <a class="btn btn-primary" href="https://github.com/carlosperate/LightUpPi-Alarm"><span class="fa fa-github"></span>View on GitHub</a>
-                            <a class="btn btn-primary" href="https://github.com/carlosperate/LightUpPi-Alarm/archive/master.zip"><span class="fa fa-linux"></span>Raspberry Pi code</a> 
                         </div>
                         <div class="table_row_text carousel-indicators-placeholder">&nbsp;</div>
                     </div>
@@ -169,7 +157,7 @@ Embedded Log            </a>
                     <div class="table_div">
                         <div class="table_row_text">
                             <a href="http://www.embeddedlog.com/PebbleQuickHue/index.html"><h2>QuickHue for Pebble</h2>
-                            Hue Lights control from Pebble smarthphone</a>
+                            Hue Lights control from a Pebble smarthphone</a>
                         </div>
                         <div class="table_row_buttons">
                             <a class="btn btn-primary" href="https://github.com/carlosperate/PebbleQuickHue/raw/master/bin/QuickHue.pbw"><span class="fa fa-clock-o"></span>Download for Pebble</a>
@@ -202,13 +190,15 @@ Embedded Log            </a>
     </ol>
 
     <section id="content" class="body">
+        <header class="page-header">
         <h1 class="entry-title">LightUp Alarm</h1>
-        
+            
+        </header>
         <div class="entry-content">
-            <p>This is a Clock Alarm System, with lights and mains socket switch control for the Raspberry Pi and Android.</p>
+            <p>This is a Clock Alarm System running on a Raspberry Pi. It has sunrise lighting, coffee machine control, physical snooze button, and an Android companion app.</p>
 <p>The system is made of two complementary projects:</p>
-<p><strong>LightUpPi Alarm</strong>: The Alarm system running in a Raspberry Pi. It controls all the hardware triggered for the alarm alert, and provides multiple ways to interface with the system (Command line, web front and server backend).</p>
-<p><strong>LightUpDroid Alarm</strong>: An Android alarm application. It connects to the LightUpPi Alarm server to synchronise alarms, but it is capable to trigger its local alarms without a connection to the LightUpPi Raspberry Pi system.</p>
+<p><strong>LightUpPi Alarm</strong>: The Alarm system running on a Raspberry Pi. It controls all the hardware triggered for the alarm alert, and provides multiple ways to interface with the system (command line, web front and server back-end).</p>
+<p><strong>LightUpDroid Alarm</strong>: An Android alarm application that connects to the LightUpPi Alarm server to synchronise phone alarms. It is capable to keep and trigger its local alarms without a connection to the LightUpPi Alarm system.</p>
 <h2>LightUpPi</h2>
 <p>It has been modularised into the following packages:</p>
 <ul>
@@ -217,44 +207,44 @@ Embedded Log            </a>
 <li><strong>LightUpServer</strong>: Creates an HTTP server to interface with the LightUpAlarm system using a web interface or JSON (used in the LightUpDroid Android app).</li>
 <li><strong>LightUpWeb</strong>: Front-end web interface for the LightUpServer. </li>
 </ul>
-<p>Additionally, an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app please visit its repository: <a href="https://github.com/carlosperate/LightUpDroid-Alarm">LightUpDrop Alarm</a></p>
+<p>Additionally, an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app please visit its repository: <a href="http://github.com/carlosperate/LightUpDroid-Alarm">LightUpDrop Alarm</a></p>
 <h3>Installing LightUpPi Alarm</h3>
 <p>This application has been been develop to run a Raspberry Pi with Python 2.7. The project currently aims to maintain compatibility with Python 3. </p>
-<p>Install the dependencies described below. Then download this repository, by clicking <a href="https://github.com/carlosperate/LightUpPi-Alarm/archive/master.zip">here</a> or running the following in the command line:</p>
+<p>Install the dependencies described below. Then download this repository, by clicking <a href="http://github.com/carlosperate/LightUpPi-Alarm/archive/master.zip">here</a> or running the following in the command line:</p>
 <div class="highlight"><pre>git clone git://github.com/carlosperate/LightUpPi-Alarm.git
 </pre></div>
 
 
 <h4>Dependencies</h4>
 <p>Each one of the Python packages has its own dependencies, please read their respective READMEs:
-<em> LightUpAlarm <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md">README</a>
-</em> LightUpServer <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpServer/README.md">README</a>
-* LightUpHardware <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpHardware/README.md">README</a></p>
+<em> LightUpAlarm <a href="http://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md">README</a>
+</em> LightUpServer <a href="http://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpServer/README.md">README</a>
+* LightUpHardware <a href="http://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpHardware/README.md">README</a></p>
 <h3>Running LightUpPi Alarm</h3>
 <p>There are two different ways to run LightUpPi Alarm:</p>
 <ol>
 <li>
 <p>Using the command line using, by launching the application with the <code>-c</code> flag:</p>
 <p><code>python main.py -c</code></p>
-<p>Instructions about how to use the CLI can be found in the LightUpAlarm package <a href="https://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md">README</a>.</p>
-<p><img src="http://carlosperate.github.com/LightUpPi-Alarm/screenshots/screenshot_cli_1.png" alt="CLI screenshot" width="60%"></p>
+<p>Instructions about how to use the CLI can be found in the LightUpAlarm package <a href="http://github.com/carlosperate/LightUpPi-Alarm/blob/master/LightUpAlarm/README.md">README</a>.</p>
+<p><img src="http://carlosperate.github.com/LightUpPi-Alarm/images/screenshot_cli_1.png" alt="CLI screenshot" width="60%"></p>
 </li>
 <li>
 <p>Or using the web interface, by launching the program with the <code>-s</code> flag:</p>
 <p><code>python main.py -s</code></p>
-<p>And then pointing your browser to the following adddress: <code>http://raspberrypi.local/LightUpPi</code> or using the <a href="https://github.com/carlosperate/LightUpDroid-Alarm">LightUpDroid</a> app.</p>
+<p>And then pointing your browser to the following adddress: <code>http://raspberrypi.local/LightUpPi</code> or using the <a href="http://github.com/carlosperate/LightUpDroid-Alarm">LightUpDroid</a> app.</p>
 </li>
 </ol>
 <h2>LightUpDroid</h2>
-<p>This is an Android companion app for the <a href="https://github.com/carlosperate/LightUpPi-Alarm">LightUpPi Alarm</a>.</p>
+<p>This is an Android companion app for the <a href="http://github.com/carlosperate/LightUpPi-Alarm">LightUpPi Alarm</a>.</p>
 <p>It is an Android alarm app that synchronizes to the alarms running in the <code>LightUpPi Alarm</code> Raspberry Pi system.</p>
-<p>It is based on the <a href="https://github.com/klinker41/alarm-clock">Alarm Clock</a> app by Jacob Klinker, which in turn is a modification of the official Android Open Source Project <a href="https://android.googlesource.com/platform/packages/apps/DeskClock/">DeskClock</a> (updated for backwards compatibility).</p>
-<p><img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/clock.png" alt="Clock Screen" width="24%"> 
-<img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/alarms.png" alt="Alarms Screen" width="24%"> 
-<img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/timepicker.png" alt="Timepicker Screen" width="24%"> 
-<img src="https://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/settings.png" alt="Settings Screen" width="24%"> </p>
+<p>It is based on the <a href="http://github.com/klinker41/alarm-clock">Alarm Clock</a> app by Jacob Klinker, which in turn is a modification of the official Android Open Source Project <a href="http://android.googlesource.com/platform/packages/apps/DeskClock/">DeskClock</a> (updated for backwards compatibility).</p>
+<p><img src="http://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/clock.png" alt="Clock Screen" width="24%"> 
+<img src="http://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/alarms.png" alt="Alarms Screen" width="24%"> 
+<img src="http://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/timepicker.png" alt="Timepicker Screen" width="24%"> 
+<img src="http://raw.githubusercontent.com/carlosperate/LightUpDroid-Alarm/master/screenshots/settings.png" alt="Settings Screen" width="24%"> </p>
 <h2>License</h2>
-<p>This project is licensed under The MIT License (MIT), a copy of which can be found in the <code>LICENSE</code> file.</p>
+<p>This project is licensed under The MIT License (MIT), a copy of which can be found in the <a href="http://raw.githubusercontent.com/carlosperate/LightUpPi-Alarm/master/LICENSE">LICENSE</a> file.</p>
         </div>
     </section>
         </div>
@@ -263,7 +253,7 @@ Embedded Log            </a>
 
 <section class="well well-sm">
     <ul class="list-group list-group-flush">
-            <li class="list-group-item"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+            <li class="list-group-item"><img src="http://www.embeddedlog.com/images/theming/profile.jpg" class="profile_pic" /><h4><span class="icon-label">Social</span></h4>
               <ul class="list-group" id="social">
                 <li class="list-group-item"><a href="https://github.com/carlosperate"><i class="fa fa-github-square fa-lg"></i> github</a></li>
                 <li class="list-group-item"><a href="https://twitter.com/carlosperate"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
@@ -274,48 +264,29 @@ Embedded Log            </a>
             <li class="list-group-item"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Recent Posts</span></h4>
                 <ul class="list-group" id="recentposts">
                     <li class="list-group-item">
-                        <a href="http://www.embeddedlog.com/my-test-post-cat.html">
-                            My Third test title
-                        </a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="http://www.embeddedlog.com/my-test-post-2.html">
-                            My second test title
-                        </a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="http://www.embeddedlog.com/my-test-post.html">
-                            My test title
+                        <a href="http://www.embeddedlog.com/static-docs-from-github-wiki.html">
+                            Build static documentation from a GitHub Wiki
                         </a>
                     </li>
                 </ul>
             </li>
 
-            <li class="list-group-item"><a href="http://www.embeddedlog.com/"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Categories</span></h4></a>
-                <ul class="list-group" id="categories">
-                    <li class="list-group-item">
-                        <a href="http://www.embeddedlog.com/category/blog.html">
-                            <i class="fa fa-folder-open fa-lg"></i> Blog
-                        </a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="http://www.embeddedlog.com/category/test-cat.html">
-                            <i class="fa fa-folder-open fa-lg"></i> Test Cat
-                        </a>
-                    </li>
-                </ul>
-            </li>
 
             <li class="list-group-item"><a href="http://www.embeddedlog.com/"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
                 <ul class="list-group " id="tags">
-                    <li class="list-group-item tag-1">
-                        <a href="http://www.embeddedlog.com/tag/test.html">
-                            test
+                    <li class="list-group-item tag-4">
+                        <a href="http://www.embeddedlog.com/tag/documentation.html">
+                            documentation
                         </a>
                     </li>
-                    <li class="list-group-item tag-1">
+                    <li class="list-group-item tag-4">
                         <a href="http://www.embeddedlog.com/tag/github.html">
                             github
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-4">
+                        <a href="http://www.embeddedlog.com/tag/web-tech.html">
+                            web-tech
                         </a>
                     </li>
                 </ul>
@@ -330,18 +301,13 @@ Embedded Log            </a>
     <li class="list-group-item"><h4><i class="fa fa-external-link-square fa-lg"></i><span class="icon-label">Links</span></h4>
       <ul class="list-group" id="links">
         <li class="list-group-item">
-            <a href="http://getpelican.com/" target="_blank">
-                Pelican
+            <a href="http://www.theamphour.com" target="_blank">
+                The Amp Hour podcast
             </a>
         </li>
         <li class="list-group-item">
-            <a href="http://python.org/" target="_blank">
-                Python.org
-            </a>
-        </li>
-        <li class="list-group-item">
-            <a href="http://jinja.pocoo.org/" target="_blank">
-                Jinja2
+            <a href="http://embedded.fm" target="_blank">
+                Embedded.fm podcast
             </a>
         </li>
       </ul>
@@ -356,11 +322,21 @@ Embedded Log            </a>
    <div class="container">
       <hr>
       <div class="row container_footer">
-         <div class="col-xs-10">&copy; 2015 <a href="https://github.com/carlosperate" target="_blank">Carlos Perate</a>
-            &middot; Powered by 
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a> and 
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+         <div class="col-xs-9">
+            <p>
+               &copy; 2015 <a href="https://github.com/carlosperate" target="_blank">carlosperate</a>
+               &middot; Powered by 
+               <a href="http://docs.getpelican.com/" target="_blank">Pelican</a> and 
+               <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>
+            </p>
+            <p><small>                     Content
+  licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>, except where indicated otherwise.
+  <!--a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="//i.creativecommons.org/l/by/4.0/80x15.png" /></a-->
+
+               Attribution for all other resources used can be found <a href="http://www.embeddedlog.com/credits/index.html">here.</a>
+            </small></p>
+         </div>
+         <div class="col-xs-3"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
       </div>
    </div>
 </footer>
