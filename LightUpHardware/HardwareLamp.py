@@ -6,8 +6,19 @@
 #
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
-import unicornhat
+from __future__ import unicode_literals, absolute_import
 import time
+try:
+    import unicornhat
+except ImportError:
+    print('The unicornhat package needs to be installed !\n' +
+          'The LightUpHardware folder contains a README file with more info.')
+    try:
+        from LightUpHardware import unicornhatmock as unicornhat
+    except ImportError:
+        import unicornhatmock as unicornhat
+    unicornhat.verbose = False
+    print('Mock unicornhat module imported.')
 
 
 brightness_start = 0.1
@@ -32,7 +43,3 @@ def gradual_light_on(seconds):
         unicornhat.show()
         brightness_level += brightness_step
         time.sleep(sleep_time)
-
-
-if __name__ == '__main__':
-    gradual_light_on(10)
