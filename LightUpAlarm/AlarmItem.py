@@ -519,7 +519,7 @@ class AlarmItem(object):
                 new_days[0:(len(new_days) - extra_days)]
 
         new_label = self.label + \
-            (" (Alarm %s %+d min)" % (self.id_, min_difference))
+            (" (Alarm %s %+dmin)" % (self.id_, min_difference))
 
         alarm_diff = AlarmItem(new_hour, new_minute, days=new_days,
                                enabled=self.enabled, label=new_label)

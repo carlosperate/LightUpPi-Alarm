@@ -399,16 +399,18 @@ class AlarmDbTestCase(unittest.TestCase):
     def test_prealert_time(self):
         """ Test the accessor for the db prealert time setting. """
         adh = AlarmDb(self.db_name)
-        # Valid data
+
+        # Valid negative data
+        success = adh.set_prealert_time(-1)
+        self.assertTrue(success)
+        self.assertEquals(adh.get_prealert_time(), -1)
+
+        # Valid positive data
         success = adh.set_prealert_time(5)
         self.assertTrue(success)
         self.assertEquals(adh.get_prealert_time(), 5)
 
         # Invalid data should maintain old value
-        success = adh.set_prealert_time(-1)
-        self.assertFalse(success)
-        self.assertEquals(adh.get_prealert_time(), 5)
-
         success = adh.set_prealert_time(2.5)
         self.assertFalse(success)
         self.assertEquals(adh.get_prealert_time(), 5)

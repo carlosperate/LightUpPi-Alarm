@@ -499,7 +499,7 @@ class AlarmItemTestCase(unittest.TestCase):
         test_id = 98
         test_label = "test label"
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
         test_timestamp = 1234
 
         test_alarm = AlarmItem(
@@ -514,7 +514,7 @@ class AlarmItemTestCase(unittest.TestCase):
         expected_minute = 45
         expected_hour = 9
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
 
         test_alarm = AlarmItem(
             test_hour, test_minute, days=test_days, enabled=test_enabled,
@@ -528,7 +528,7 @@ class AlarmItemTestCase(unittest.TestCase):
         expected_minute = 45
         expected_hour = 9
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
 
         test_alarm = AlarmItem(
             test_hour, test_minute, days=test_days, enabled=test_enabled,
@@ -542,7 +542,7 @@ class AlarmItemTestCase(unittest.TestCase):
         expected_minute = 9
         expected_hour = 15
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
 
         test_alarm = AlarmItem(
             test_hour, test_minute, days=test_days, enabled=test_enabled,
@@ -556,7 +556,7 @@ class AlarmItemTestCase(unittest.TestCase):
         expected_minute = 11
         expected_hour = 13
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
 
         test_alarm = AlarmItem(
             test_hour, test_minute, days=test_days, enabled=test_enabled,
@@ -572,7 +572,7 @@ class AlarmItemTestCase(unittest.TestCase):
         test_days = (True, False, False, True, True, False, True)
         expected_days = (True, True, False, False, True, True, False)
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
 
         test_alarm = AlarmItem(
             test_hour, test_minute, days=test_days, enabled=test_enabled,
@@ -588,7 +588,7 @@ class AlarmItemTestCase(unittest.TestCase):
         test_days = (True, False, False, True, True, False, True)
         expected_days = (False, False, True, True, False, True, True)
         expected_label = test_label + \
-            (" (Alarm %s %+d min)" % (test_id, time_diff))
+            (" (Alarm %s %+dmin)" % (test_id, time_diff))
 
         test_alarm = AlarmItem(
             test_hour, test_minute, days=test_days, enabled=test_enabled,

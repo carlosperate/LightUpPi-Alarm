@@ -36,7 +36,7 @@ class AlarmManager(object):
     #
     # Instance initialiser
     #
-    def __init__(self, alarm_callback=None):
+    def __init__(self, alarm_callback=None, pre_alarm_callback=None):
         """
         On initialization we connect to the database and check if there are
         any alarms to load. If not, load a couple of dummy alarms.
@@ -44,8 +44,9 @@ class AlarmManager(object):
         :param alarm_callback: Optional argument to register a callback function
                                to be executed on an alarm alert.
         """
-        # Save the alarm callback function as a private member variable
+        # Save the alarm callback functions as a private member variable
         self.__alarm_callback = alarm_callback
+        self.__pre_alarm_callback = pre_alarm_callback
         # Create a private member list for the alarm threads
         self.__alarm_threads = []
 
@@ -325,8 +326,11 @@ class AlarmManager(object):
                     alarm_thread.edit_alarm(alarm)
                     # It is meant to be up and running, check that it is
                     if alarm_thread.isAlive() is False:
-                        self.__alarm_threads[i] = \
-                            AlarmThread(alarm, self.__alarm_callback)
+                        self.__alarm_threads[i] = AlarmThread(
+                            alarm,
+                            alarm_callback=self.__alarm_callback,
+                            offset_alarm_time=self.get_prealert_time(),
+                            offset_callback=self.__pre_alarm_callback)
                         self.__alarm_threads[i].start()
                     thread_up = alarm_thread.isAlive()
                 break
@@ -334,7 +338,11 @@ class AlarmManager(object):
         else:
             # Before thread is launched, check if the alarm is active
             if alarm.is_active() is True:
-                alarm_thread = AlarmThread(alarm, self.__alarm_callback)
+                alarm_thread = AlarmThread(
+                    alarm,
+                    alarm_callback=self.__alarm_callback,
+                    offset_alarm_time=self.get_prealert_time(),
+                    offset_callback=self.__pre_alarm_callback)
                 self.__alarm_threads.append(alarm_thread)
                 alarm_thread.start()
                 thread_up = alarm_thread.isAlive()
@@ -344,7 +352,7 @@ class AlarmManager(object):
     def __stop_alarm_thread(self, alarm_id):
         """
         Stops an AlarmThread and removes item from the threads list.
-        This method can take up to 10 seconds to run.
+        This method can take up to 2 seconds to run.
         :param alarm_id: ID of the AlarmItem for the alarm thread to stop.
         :return: Boolean indicating if the operation was successful.
         """
@@ -352,9 +360,9 @@ class AlarmManager(object):
         for alarm_thread in self.__alarm_threads:
             if alarm_id == alarm_thread.get_id():
                 alarm_thread.stop()
-                # Check that it has really stopped for a maximum period of 10s
+                # Check that it has really stopped for a maximum period of 3s
                 milliseconds_passed = 0
-                while alarm_thread.isAlive() and (milliseconds_passed < 10000):
+                while alarm_thread.isAlive() and (milliseconds_passed < 3000):
                     time.sleep(0.01)
                     milliseconds_passed += 10
                 # isAlive returns False if it has stopped

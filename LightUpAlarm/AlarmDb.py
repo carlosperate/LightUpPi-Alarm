@@ -32,13 +32,17 @@ import sys
 import json
 import time
 import types
-import dataset
 # StringIO embedded into io in python 3
 try:
     import StringIO
 except ImportError:
     from io import StringIO
-
+try:
+    import dataset
+except ImportError:
+    print("The dataset package needs to be installed !\nThe LightUpAlarm " +
+          "folder contains a README file with more information.")
+    sys.exit(1)
 try:
     from LightUpAlarm.AlarmItem import AlarmItem
     from LightUpAlarm.Py23Compatibility import *
@@ -58,7 +62,7 @@ class AlarmDb(object):
         AlarmDbHelper initialiser. It can take an argument to indicate the
         sqlite database filename.
         By default if no settings are found in the db it wll add the snooze
-        time to be 3 min, and the pre-alert time to be 15 min.
+        time to be 3 min, and the pre-alert time to be -15 min.
         :param db_name: Optional string indicating the database filename.
         """
         if isinstance(db_name, str_type):
@@ -73,7 +77,7 @@ class AlarmDb(object):
         settings_table = self.__connect_settings()
         rows = settings_table.all()
         if rows.count == 0:
-            settings_table.insert(dict(snooze_time=3, prealert_time=15))
+            settings_table.insert(dict(snooze_time=3, prealert_time=-15))
 
     #
     # db connection member functions
@@ -121,7 +125,7 @@ class AlarmDb(object):
         :param prealert_time: Integer, pre-alert time in minutes.
         :return: Boolean indicating the operation success.
         """
-        if isinstance(prealert_time, types.IntType) and prealert_time >= 0:
+        if isinstance(prealert_time, types.IntType):
             settings_table = self.__connect_settings()
             success = settings_table.update(
                 dict(id=1, prealert_time=prealert_time), ['id'])
