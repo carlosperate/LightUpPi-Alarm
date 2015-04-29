@@ -21,14 +21,15 @@ try:
 except ImportError:
     from pywemoswitch.WemoSwitch import WemoSwitch
 
+
 # The Belkin Wemo Switch ip
 _coffee_switch_ip = '192.168.0.16'
 
 
 def _get_switch(input_switch_ip=None):
     """
-    If not done so already it initialises the ouimeaux environment, if a switch
-    name is not given it finds a Wemo Switch on the network.
+    Connects to a network connected switch at the given IP, if an IP is not
+    given it uses the default defined as a global.
     It connects to the switch and returns the Switch instance.
     :param input_switch_ip: String with the IP of the switch to connect. If
                             none given it will use global default.
@@ -45,11 +46,11 @@ def _get_switch(input_switch_ip=None):
         switch = WemoSwitch(switch_ip)
         counter += 1
     if switch.connected is True:
-        print("Connected to wemo switch on %s:%s" %
+        print('Connected to Switch on %s:%s' %
               (switch.server, switch.port))
         return switch
     else:
-        print("Unable to connect to Switch on %s" % switch.server,
+        print('Unable to connect to Switch on %s' % switch.server,
               file=sys.stderr)
         return None
 
@@ -86,16 +87,28 @@ def switch_off(input_switch=None):
     return state
 
 
+def safe_on():
+    """ Checks the state of the switch and only turns it ON if necessary. """
+    switch = _get_switch()
+    switch_is_on = switch.get_state()
+    if switch_is_on is False:
+        print('Turning on Switch.')
+        switch.turn_on()
+    else:
+        print('WARNING: The Switch is already ON, state unchanged !',
+              file=sys.stderr)
+
+
 def test_switch():
     """
     Simple test that turns ON the default switch (las switch found on the
     network), waits 5 seconds, and turns it off.
     """
     state = switch_on()
-    print("Switch is now %s" % ("ON" if state else "OFF"))
+    print('Switch is now %s' % ('ON' if state else 'OFF'))
     sleep(5)
     state = switch_off()
-    print("Switch is now %s" % ("ON" if state else "OFF"))
+    print('Switch is now %s' % ('ON' if state else 'OFF'))
 
 
 if __name__ == '__main__':
