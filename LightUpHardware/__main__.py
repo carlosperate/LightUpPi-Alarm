@@ -14,18 +14,20 @@ except ImportError:
     from HardwareThread import HardwareThread
 
 
-def main(argv=None):
-    # Checking command line arguments
-    if (argv is not None) and (len(argv) > 0):
-        pass
+def main():
+    minutes = lambda x: x * 60
 
-    temp = HardwareThread(
-        lamp_time=0, room_light_time=2, coffee_time=5, total_time=35)
-    temp.start()
-    while temp.isAlive():
+    hardware_alert = HardwareThread(
+        lamp=(0, minutes(3)),
+        room_light=(minutes(2), minutes(13)),
+        coffee_time=minutes(10),
+        total_time=minutes(15))
+
+    hardware_alert.start()
+    while hardware_alert.isAlive():
         pass
-    print('finished!')
+    print('Main LightUpHardware finished!')
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

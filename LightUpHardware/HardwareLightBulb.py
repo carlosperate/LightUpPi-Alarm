@@ -13,6 +13,7 @@ try:
 except ImportError:
     from phue.phue import *
 
+
 # The Philips Hue light ID for the bedroom
 ROOM_LIGHT_BULB_ID = 4
 
@@ -27,7 +28,7 @@ def gradual_light_on(seconds):
 
     light_bulb = Light(__connected_bridge(), ROOM_LIGHT_BULB_ID)
     if light_bulb.reachable is False:
-        print("Light %s switch is OFF" % ROOM_LIGHT_BULB_ID)
+        print('Light %s switch is OFF' % ROOM_LIGHT_BULB_ID)
     else:
         light_bulb.brightness = 0
         if light_bulb.on is False:
@@ -44,11 +45,11 @@ def __connected_bridge():
         try:
             bridge = Bridge('192.168.0.10')
             break
-        except PhueRegistrationException as e:
-            connect_str = "This application needs to be registered in the " \
-                          "bridge. This only has to be done once.\nPlease " \
-                          "press the button on the Bridge then hit Enter to " \
-                          "try again."
+        except PhueRegistrationException:
+            connect_str = 'This application needs to be registered in the ' \
+                          'bridge. This only has to be done once.\nPlease ' \
+                          'press the button on the Bridge then hit Enter to ' \
+                          'try again.'
             if sys.version_info[0] > 2:
                 input(connect_str)
             else:

@@ -92,7 +92,7 @@ def safe_on():
     switch = _get_switch()
     switch_is_on = switch.get_state()
     if switch_is_on is False:
-        print('Turning on Switch.')
+        print('Turning ON Switch.')
         switch.turn_on()
     else:
         print('WARNING: The Switch is already ON, state unchanged !',
