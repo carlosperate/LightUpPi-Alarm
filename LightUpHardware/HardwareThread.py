@@ -11,6 +11,7 @@ import sys
 import time
 import types
 import threading
+
 try:
     from LightUpHardware import HardwareLightBulb
     from LightUpHardware import HardwareSwitch
@@ -47,7 +48,7 @@ class HardwareThread(object):
     #
     # metaclass methods to apply singleton pattern and set accessors
     #
-    class __HardwareThread_metaclass(type):
+    class __HardwareThreadMetaclass(type):
         """
         The property accesors of the HardwareThread class would only be applied
         to instance variables and not to the class static variables, so we set
@@ -80,7 +81,7 @@ class HardwareThread(object):
 
             return hw_thread_instance
 
-    __metaclass__ = __HardwareThread_metaclass
+    __metaclass__ = __HardwareThreadMetaclass
 
     def __new__(cls, lamp=None, room_light=None, coffee_time=None,
                 total_time=None):
@@ -128,7 +129,8 @@ class HardwareThread(object):
                 print('ERROR: Provided lamp data is not list/tuple of the ' +
                       ('right format (launch time, duration): %s' % str(lamp)) +
                       ('\nKept default: (%s, %s)' %
-                      (cls.lamp_time, cls.lamp_duration)), file=sys.stderr)
+                       (cls.lamp_time, cls.lamp_duration)),
+                      file=sys.stderr)
         if room_light is not None:
             if (isinstance(room_light, types.TupleType) or
                     isinstance(room_light, types.ListType)) and \
@@ -139,7 +141,7 @@ class HardwareThread(object):
                 print('ERROR: Provided room light is not list/tuple of the ' +
                       ('right format (launch time, duration): %s' % str(lamp)) +
                       ('\nKept default: (%s, %s)' %
-                      (cls.room_light_time, cls.room_light_duration)),
+                       (cls.room_light_time, cls.room_light_duration)),
                       file=sys.stderr)
         if coffee_time is not None:
             cls.coffee_time = coffee_time
@@ -297,32 +299,6 @@ class HardwareThread(object):
     # class member methods
     #
     @classmethod
-    def _launch_lamp(cls):
-        t = threading.Thread(
-            name='LampThread',
-            target=HardwareLamp.gradual_light_on,
-            args=(cls.lamp_duration,))
-        cls.__threads.append(t)
-        t.start()
-
-    @classmethod
-    def _launch_room_light(cls):
-        t = threading.Thread(
-            name='LightThread',
-            target=HardwareLightBulb.gradual_light_on,
-            args=(cls.room_light_duration,))
-        cls.__threads.append(t)
-        t.start()
-
-    @classmethod
-    def _launch_coffee(cls):
-        t = threading.Thread(
-            name='SwitchThread',
-            target=HardwareSwitch.safe_on)
-        cls.__threads.append(t)
-        t.start()
-
-    @classmethod
     def check_variables(cls):
         """
         Checks that all variables are set to something
@@ -333,9 +309,17 @@ class HardwareThread(object):
             print('HardwareThread ERROR: Variable lamp_time has not been set.',
                   file=sys.stderr)
             all_good = False
+        if cls.lamp_duration is None:
+            print('HardwareThread ERROR: Variable lamp_duration has not been '
+                  'set.', file=sys.stderr)
+            all_good = False
         if cls.room_light_time is None:
             print('HardwareThread ERROR: Variable room_light_time has not been '
-                  'set.',file=sys.stderr)
+                  'set.', file=sys.stderr)
+            all_good = False
+        if cls.room_light_duration is None:
+            print('HardwareThread ERROR: Variable room_light_duration has not '
+                  'been set.', file=sys.stderr)
             all_good = False
         if cls.coffee_time is None:
             print('HardwareThread ERROR: Variable coffee_time has not been '
@@ -346,12 +330,14 @@ class HardwareThread(object):
                   file=sys.stderr)
             all_good = False
 
-        if all_good is True:
-            print('Running the Hardware Thread: runtime of %s seconds, lamp '
-                  'trigger after %s seconds, room light triggered after %s '
-                  'seconds, coffee triggered after %s seconds' %
-                  (cls.total_time, cls.lamp_time, cls.room_light_time,
-                   cls.coffee_time))
+        # Check that the total running time is == or >= than total_time
+        if all_good is True and \
+                ((cls.total_time < (cls.lamp_time + cls.lamp_duration))
+                 or (cls.total_time < (cls.room_light_time +
+                                       cls.room_light_duration))
+                 or (cls.total_time < cls.coffee_time)):
+            print('WARNING: The total runtime of the HardwareThread is lower' +
+                  'than the sum of its components !', file=sys.stderr)
 
         return all_good
 
@@ -359,11 +345,40 @@ class HardwareThread(object):
     # Thread methods
     #
     @classmethod
+    def _launch_lamp(cls):
+        t = threading.Thread(
+            name='LampThread',
+            target=HardwareLamp.gradual_light_on,
+            args=(cls.lamp_duration,))
+        t.daemon = True
+        cls.__threads.append(t)
+        t.start()
+
+    @classmethod
+    def _launch_room_light(cls):
+        t = threading.Thread(
+            name='LightThread',
+            target=HardwareLightBulb.gradual_light_on,
+            args=(cls.room_light_duration,))
+        t.daemon = True
+        cls.__threads.append(t)
+        t.start()
+
+    @classmethod
+    def _launch_coffee(cls):
+        t = threading.Thread(
+            name='SwitchThread',
+            target=HardwareSwitch.safe_on)
+        t.daemon = True
+        cls.__threads.append(t)
+        t.start()
+
+    @classmethod
     def __run(cls):
         """
-        Infinite loop function to run during the total time, in seconds,
-        indicated by total_time variable.
-        This method checks the time variables have been set and locks reentry.
+        Loop function to run as long as total_time indicates, in seconds.
+        It launches the individual hardware threads at the times indicated by
+        their variables.
         """
         start_time = time.time()
         time_lamp = start_time + cls.lamp_time
@@ -386,38 +401,55 @@ class HardwareThread(object):
             if time_coffee < current_time and coffee_launched is False:
                 coffee_launched = True
                 cls._launch_coffee()
-            time.sleep(0.1)
+            time.sleep(0.01)
             current_time = time.time()
 
         # Don't wait for the threads to join, as it would overrun the requested
-        # runtime. Ending this thread will kill its children.
+        # runtime. Ending this thread will kill its children (daemon=True).
         print('HardwareThread run finished.')
+        cls.__running = False
 
     @classmethod
     def start(cls):
         """
+        Launches the HardwareThread thread only if the variables have been set
+        and there is no other thread running already.
+        This method is not re-entrant by design, as it locks relaunching until
+        previous threads are done.
         """
-        # First check if required variables are set
+        # Check if required variables are set
         variables_ok = cls.check_variables()
         if variables_ok is False:
             return
 
-        # Setting a lock for no reentry
+        # Setting a lock for safe reentry, not unlocked here, as it will exit as
+        # soon as the thread is launched, so unlocked at the end of cls.__run()
         if cls.__running is True:
-            print("LightUpPi Hardware already running.")
-            time.sleep(1)
+            print("WARNING: LightUp Hardware already running, thread waiting.",
+                  file=sys.stderr)
+            while cls.__running is True:
+                time.sleep(0.1)
         cls.__running = True
 
         # Launch thread
+        print('Running the Hardware Thread:\n\t'
+              'Lamp trigger after %s seconds for a duration of %s seconds\n\t'
+              'Room light triggered after %s seconds, for a duration of %s\n\t'
+              'Coffee machine triggered after %s seconds\n\t'
+              'Total runtime %s seconds' %
+              (cls.lamp_time, cls.lamp_duration, cls.room_light_time,
+               cls.room_light_duration, cls.coffee_time, cls.total_time))
         cls.__thread = threading.Thread(
             name='HardwareThread run', target=cls.__run)
+        cls.__thread.daemon = True
         cls.__thread.start()
-        cls.__thread.join()
-
-        cls.__running = False
 
     @classmethod
     def isAlive(cls):
+        """
+        Provides easy and familiar check of the main thread Alive state.
+        :return: Boolean indicating the Alive state of the Hardware thread
+        """
         if cls.__thread:
             return cls.__thread.isAlive()
         else:

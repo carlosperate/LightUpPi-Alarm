@@ -12,6 +12,7 @@ import time
 import mock
 import types
 import unittest
+import threading
 try:
     from LightUpHardware.HardwareThread import HardwareThread
 except ImportError:
@@ -470,7 +471,7 @@ class HardwareThreadTestCase(unittest.TestCase):
         the methods that launch the threads to control the hw will be mocked.
         This also allows to check if the methods are called at the requested
         intervals.
-        This method also test that the thread can be launched multiple times.
+        This test will take over 5 seconds.
         """
         if HardwareThread._HardwareThread__singleton is not None:
             HardwareThread._drop()
@@ -487,7 +488,7 @@ class HardwareThreadTestCase(unittest.TestCase):
         def mock_launch_lamp(cls):
             self.launch_lamp_counter += 1
             now = time.time()
-            self.assertAlmostEqual(now, start_time + lamp_start, delta=1.0)
+            self.assertAlmostEqual(now, start_time + lamp_start, delta=0.2)
         self.launch_lamp_counter = 0
         HardwareThread._launch_lamp = \
             types.MethodType(mock_launch_lamp, HardwareThread)
@@ -496,7 +497,7 @@ class HardwareThreadTestCase(unittest.TestCase):
         def mock_launch_room_light(cls):
             self.launch_room_light_counter += 1
             now = time.time()
-            self.assertAlmostEqual(now, start_time + room_start, delta=1.0)
+            self.assertAlmostEqual(now, start_time + room_start, delta=0.2)
         self.launch_room_light_counter = 0
         HardwareThread._launch_room_light = \
             types.MethodType(mock_launch_room_light, HardwareThread)
@@ -505,7 +506,7 @@ class HardwareThreadTestCase(unittest.TestCase):
         def mock_launch_coffee(cls):
             self.launch_coffee_counter += 1
             now = time.time()
-            self.assertAlmostEqual(now, start_time + coffee_time, delta=1.0)
+            self.assertAlmostEqual(now, start_time + coffee_time, delta=0.2)
         self.launch_coffee_counter = 0
         HardwareThread._launch_coffee = \
             types.MethodType(mock_launch_coffee, HardwareThread)
@@ -552,23 +553,67 @@ class HardwareThreadTestCase(unittest.TestCase):
         while hw_thread_instance.isAlive():
             pass
         end_time = time.time()
-        self.assertAlmostEqual(total_time, end_time - start_time, delta=0.5)
+        self.assertAlmostEqual(total_time, end_time - start_time, delta=0.1)
 
         self.assertEqual(self.launch_lamp_counter, 1)
         self.assertEqual(self.launch_room_light_counter, 1)
         self.assertEqual(self.launch_coffee_counter, 1)
+
+    def test_multirun(self):
+        """
+        Tests that the HardwareThread can be launched several times and that
+        if one instance launches the thread, and another tries to do the same it
+        will wait until it is done.
+        This test can take over 8 seconds (2s per thread launch, 4 launches)
+        """
+        # These thread last 2 seconds
+        hw_thread_instance_one = HardwareThread(
+            lamp=(0, 1), room_light=(0, 1), coffee_time=0, total_time=2)
+        hw_thread_instance_two = HardwareThread()
+
+        # Mocking the hardware threads, they will finish as soon as they are
+        # launched
+        def mock_hw(cls):
+            pass
+        HardwareThread._launch_lamp = \
+            types.MethodType(mock_hw, HardwareThread)
+        HardwareThread._launch_room_light = \
+            types.MethodType(mock_hw, HardwareThread)
+        HardwareThread._launch_coffee = \
+            types.MethodType(mock_hw, HardwareThread)
+
+        # Launch the hardware thread, ensure it lasts 2 seconds
+        start_time = time.time()
+        hw_thread_instance_one.start()
+        while hw_thread_instance_one.isAlive():
+            pass
+        end_time = time.time()
+        self.assertAlmostEqual(2, end_time - start_time, delta=0.1)
 
         # Ensure the hardware thread can be launched multiple times
         start_time = time.time()
-        hw_thread_instance.start()
-        while hw_thread_instance.isAlive():
+        hw_thread_instance_one.start()
+        while hw_thread_instance_one.isAlive():
             pass
         end_time = time.time()
-        self.assertAlmostEqual(total_time, end_time - start_time, delta=0.5)
+        self.assertAlmostEqual(2, end_time - start_time, delta=0.1)
 
-        self.assertEqual(self.launch_lamp_counter, 1)
-        self.assertEqual(self.launch_room_light_counter, 1)
-        self.assertEqual(self.launch_coffee_counter, 1)
+        # Ensure the hardware thread can only be launched once at a time
+        original_numb_threads = threading.activeCount()
+        start_time = time.time()
+
+        hw_thread_instance_one.start()
+        time.sleep(0.2)  # Enough time for child threads launch and end
+        hw_thread_count = threading.activeCount()
+        self.assertEqual(original_numb_threads + 1, hw_thread_count)
+
+        hw_thread_instance_two.start()
+        self.assertEqual(hw_thread_count, threading.activeCount())
+        while hw_thread_instance_two.isAlive():
+            pass
+
+        end_time = time.time()
+        self.assertAlmostEqual(2*2, end_time - start_time, delta=0.1*2)
 
 
 if __name__ == '__main__':

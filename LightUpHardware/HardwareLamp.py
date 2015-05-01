@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals, absolute_import
 import time
+import colorsys
 try:
     import unicornhat
 except ImportError:
@@ -31,9 +32,13 @@ def gradual_light_on(seconds):
     brightness_level = brightness_start
 
     # Set all the pixels to the yellowish colour
+    r, g, b = colorsys.hsv_to_rgb(0.108, 0.6, 1.0)
+    r = int(r * 255)
+    g = int(g * 255)
+    b = int(b * 255)
     for y in range(8):
         for x in range(8):
-            unicornhat.set_pixel(x, y, 255, 200, 100)
+            unicornhat.set_pixel(x, y, r, g, b)
     unicornhat.brightness(brightness_start)
     unicornhat.show()
 

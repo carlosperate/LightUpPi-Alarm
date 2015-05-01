@@ -7,7 +7,7 @@
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
 from __future__ import unicode_literals, absolute_import
-import sys
+from time import sleep
 try:
     from LightUpHardware.HardwareThread import HardwareThread
 except ImportError:
@@ -25,7 +25,7 @@ def main():
 
     hardware_alert.start()
     while hardware_alert.isAlive():
-        pass
+        sleep(1)
     print('Main LightUpHardware finished!')
 
 
