@@ -39,16 +39,16 @@ class AlarmCli(cmd.Cmd):
     #
     # metaclass methods
     #
-    def __init__(self, alarm_mgr=None, callback=None):
+    def __init__(self, alarm_mgr=None, alert_callback_arg=None):
         """
         Instance initialiser.
         Creates an AlarmManager instance and sets the alarm alert callback.
         """
         cmd.Cmd.__init__(self)
-        self.callback = callback
-        self.callback_running = False
+        self.alert_callback = alert_callback_arg
+        self.alert_running = False
         if alarm_mgr is None:
-            self.alarm_mgr = AlarmManager(self.alarm_callback)
+            self.alarm_mgr = AlarmManager(alarm_callback=self.alarm_alert)
         else:
             self.alarm_mgr = alarm_mgr
 
@@ -467,25 +467,25 @@ class AlarmCli(cmd.Cmd):
     #
     # callback method
     #
-    def alarm_callback(self):
+    def alarm_alert(self):
         """
         This is the command line interface Alarm Alert function. It will be
         executed every time an alarm alert is triggered.
         """
         # Try to prevent re-entry
-        while self.callback_running is True:
+        while self.alert_running is True:
             time.sleep(float(random.randint(1, 100)) / 1000.0)
         # Should be safe now
-        self.callback_running = True
+        self.alert_running = True
         print('\n\nRING RING RING!!!!')
         print('\a')  # Request terminal to beep
         time.sleep(0.8)
         print('\a')  # Request terminal to beep
         time.sleep(0.8)
         print('\a')  # Request terminal to beep
-        if self.callback is not None:
-            self.callback()
+        if self.alert_callback is not None:
+            self.alert_callback()
         # print without a new line, using sys to work on python 2 and 3
         sys.stdout.flush()
         sys.stdout.write('\n%s' % self.prompt)
-        self.callback_running = False
+        self.alert_running = False

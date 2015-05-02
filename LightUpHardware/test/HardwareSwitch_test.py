@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #
-# Unit test for the HardwareSwitch class.
+# Unit test for the HardwareSwitch module.
 #
 # Copyright (c) 2015 carlosperate https://github.com/carlosperate/
 #

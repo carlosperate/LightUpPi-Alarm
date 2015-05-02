@@ -56,30 +56,30 @@ class HardwareThread(object):
         act as HardwareThread class static variables with accessors for input
         sanitation and to stop editing the data while the thread is running.
         """
-        def __new__(cls, name, bases, dct):
-            hw_thread_instance = type.__new__(cls, name, bases, dct)
+        def __new__(mcs, name, bases, dct):
+            hw_th_instance = type.__new__(mcs, name, bases, dct)
 
             # Set the metaclass variables and attach accessors
-            cls.lamp_time = property(
-                hw_thread_instance._HardwareThread__get_lamp_time.im_func,
-                hw_thread_instance._HardwareThread__set_lamp_time.im_func)
-            cls.lamp_duration = property(
-                hw_thread_instance._HardwareThread__get_lamp_duration.im_func,
-                hw_thread_instance._HardwareThread__set_lamp_duration.im_func)
-            cls.room_light_time = property(
-                hw_thread_instance._HardwareThread__get_room_light_time.im_func,
-                hw_thread_instance._HardwareThread__set_room_light_time.im_func)
-            cls.room_light_duration = property(
-                hw_thread_instance._HardwareThread__get_room_light_duration.im_func,
-                hw_thread_instance._HardwareThread__set_room_light_duration.im_func)
-            cls.coffee_time = property(
-                hw_thread_instance._HardwareThread__get_coffee_time.im_func,
-                hw_thread_instance._HardwareThread__set_coffee_time.im_func)
-            cls.total_time = property(
-                hw_thread_instance._HardwareThread__get_total_time.im_func,
-                hw_thread_instance._HardwareThread__set_total_time.im_func)
+            mcs.lamp_time = property(
+                hw_th_instance._HardwareThread__get_lamp_time.im_func,
+                hw_th_instance._HardwareThread__set_lamp_time.im_func)
+            mcs.lamp_duration = property(
+                hw_th_instance._HardwareThread__get_lamp_duration.im_func,
+                hw_th_instance._HardwareThread__set_lamp_duration.im_func)
+            mcs.room_light_time = property(
+                hw_th_instance._HardwareThread__get_room_light_time.im_func,
+                hw_th_instance._HardwareThread__set_room_light_time.im_func)
+            mcs.room_light_duration = property(
+                hw_th_instance._HardwareThread__get_room_light_duration.im_func,
+                hw_th_instance._HardwareThread__set_room_light_duration.im_func)
+            mcs.coffee_time = property(
+                hw_th_instance._HardwareThread__get_coffee_time.im_func,
+                hw_th_instance._HardwareThread__set_coffee_time.im_func)
+            mcs.total_time = property(
+                hw_th_instance._HardwareThread__get_total_time.im_func,
+                hw_th_instance._HardwareThread__set_total_time.im_func)
 
-            return hw_thread_instance
+            return hw_th_instance
 
     __metaclass__ = __HardwareThreadMetaclass
 
@@ -346,6 +346,7 @@ class HardwareThread(object):
     #
     @classmethod
     def _launch_lamp(cls):
+        """ Creates and starts the thread to gradually turn on lamp. """
         t = threading.Thread(
             name='LampThread',
             target=HardwareLamp.gradual_light_on,
@@ -356,6 +357,9 @@ class HardwareThread(object):
 
     @classmethod
     def _launch_room_light(cls):
+        """
+        Creates and starts the thread to gradually turn on the room light.
+        """
         t = threading.Thread(
             name='LightThread',
             target=HardwareLightBulb.gradual_light_on,
@@ -366,6 +370,7 @@ class HardwareThread(object):
 
     @classmethod
     def _launch_coffee(cls):
+        """ Creates and starts the thread to turn on the coffee machine. """
         t = threading.Thread(
             name='SwitchThread',
             target=HardwareSwitch.safe_on)
@@ -433,10 +438,12 @@ class HardwareThread(object):
 
         # Launch thread
         print('Running the Hardware Thread:\n\t'
-              'Lamp trigger after %s seconds for a duration of %s seconds\n\t'
-              'Room light triggered after %s seconds, for a duration of %s\n\t'
-              'Coffee machine triggered after %s seconds\n\t'
-              'Total runtime %s seconds' %
+              'Lamp will gradually increase brightness in %s seconds, for %s '
+              'seconds\n\t'
+              'Room light will gradually increase brightness in %s secs, for %s'
+              ' seconds\n\t'
+              'Coffee machine will start brewing in %s seconds\n\t'
+              'Total runtime will be %s seconds' %
               (cls.lamp_time, cls.lamp_duration, cls.room_light_time,
                cls.room_light_duration, cls.coffee_time, cls.total_time))
         cls.__thread = threading.Thread(
