@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Command line interface for the LightUpAlarm package.
 #
@@ -14,7 +15,7 @@
 # operations performed here are relatively straight forwards (minimum logic and
 # calls to classes with full test coverage), no unit test has been developed.
 #
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, division
 import os
 import cmd
 import sys
@@ -473,21 +474,21 @@ class AlarmCli(cmd.Cmd):
     #
     def alarm_alert(self):
         """
-        This is the command line interface Alarm Alert function. It will be
-        executed every time an alarm alert is triggered.
+        This is the default command line interface Alarm Alert function. It will
+        be executed every time an alarm alert is triggered.
         """
         # Try to prevent re-entry
         while self.alert_running is True:
             time.sleep(float(random.randint(1, 100)) / 1000.0)
         # Should be safe now
         self.alert_running = True
-        print('\n\nRING RING RING!!!!')
-        print('\a')  # Request terminal to beep
+        # '\a' is a request to the terminal to beep
+        print('\n\nRING RING RING!!!!\a')
+        print('\a')
         time.sleep(0.8)
-        print('\a')  # Request terminal to beep
+        print('\a')
         time.sleep(0.8)
-        print('\a')  # Request terminal to beep
+        print('\a')
         # print without a new line, using sys to work on python 2 and 3
-        sys.stdout.flush()
-        sys.stdout.write('\n%s' % self.prompt)
+        sys.stdout.write(self.prompt)
         self.alert_running = False

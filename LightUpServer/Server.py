@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Server component from the LightUpServer package.
 #
@@ -9,12 +10,13 @@
 # Longer description.
 #
 from __future__ import unicode_literals, absolute_import
+import os
+import datetime
+import logging
 from flask import Flask
 from flask import Response
 from flask import request, redirect, jsonify, render_template, \
-    send_from_directory, url_for
-import datetime
-import os
+    send_from_directory
 try:
     from LightUpServer.ServerAlarmAdapter import ServerAlarmAdapter
 except ImportError:
@@ -26,6 +28,14 @@ flask_server = Flask(__name__, static_url_path='/LightUpPi')
 
 # Uninitialised AlarmManager instance
 alarm_adapt = None
+
+# Callback function to be executed every time there is an alarm change
+callback_func = None
+
+
+def callback():
+    if callback_func is not None:
+        callback_func()
 
 
 @flask_server.route('/')
@@ -67,6 +77,7 @@ def template_test():
 
 @flask_server.route('/LightUpPi/getAlarm', methods=['GET'])
 def get_alarm():
+    callback()
     global alarm_adapt
     message = {'error': 'The \'id\' argument is required for \'getAlarm\''}
     alarm_id = request.args.get('id')
@@ -332,9 +343,15 @@ def delete_alarm():
     return jsonify(message)
 
 
-def run(alarm_mgr_arg):
-    global alarm_adapt
+def run(alarm_mgr_arg, silent=False, callback_arg=None):
+    global alarm_adapt, callback_func
     alarm_adapt = ServerAlarmAdapter(alarm_mgr_arg)
+    callback_func = callback_arg
+
+    # Set up logging
+    if silent is True:
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
 
     # Setting the static folder
     static_dir = os.path.join(
@@ -344,4 +361,4 @@ def run(alarm_mgr_arg):
     flask_server.static_folder = static_dir
 
     # Run flask
-    flask_server.run(host='0.0.0.0', port=80, debug=True)
+    flask_server.run(host='0.0.0.0', port=80, debug=False)

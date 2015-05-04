@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Entry point for the LightUpAlarm package.
 #
@@ -24,5 +25,5 @@ def main(argv=None):
         AlarmCli().cmdloop()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv[1:])
