@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # General management class for the LightUp Alarm package.
 #
@@ -10,12 +10,11 @@
 # class and launches a running thread per active alarm using the AlarmThread
 # class.
 # It also provides access to the Alarm settings (snooze time, and alarm
-# pre-alert time).
+# offset alert time).
 #
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import time
-import operator
 try:
     from LightUpAlarm.AlarmDb import AlarmDb
     from LightUpAlarm.AlarmItem import AlarmItem
@@ -36,17 +35,21 @@ class AlarmManager(object):
     #
     # Instance initialiser
     #
-    def __init__(self, alarm_callback=None, pre_alarm_callback=None):
+    def __init__(self, alert_callback=None, offset_alert_callback=None):
         """
         On initialization we connect to the database and check if there are
         any alarms to load. If not, load a couple of dummy alarms.
         It also registers any alarms present in the database.
-        :param alarm_callback: Optional argument to register a callback function
+        :param alert_callback: Optional argument to register a callback function
                                to be executed on an alarm alert.
+        :param offset_alert_callback: Optional argument to register a callback
+                                      function to be executed on an offset time
+                                      of the alarm.
         """
         # Save the alarm callback functions as a private member variable
-        self.__alarm_callback = alarm_callback
-        self.__pre_alarm_callback = pre_alarm_callback
+        self.__alert_callback = alert_callback
+        self.__offset_alert_callback = offset_alert_callback
+
         # Create a private member list for the alarm threads
         self.__alarm_threads = []
 
@@ -81,24 +84,24 @@ class AlarmManager(object):
         return AlarmDb().set_snooze_time(snooze_time)
 
     @staticmethod
-    def get_prealert_time():
+    def get_offset_alert_time():
         """
-        Static method, gets the prealeter time (the time before the alarm alert
-        is triggered), used to set some action before the alarm rings.
-        :return: Integer, the prealert time in minutes.
+        Static method, gets the offset alert time (the time difference before or
+        after the alarm alert is triggered), used to set some action.
+        :return: Integer, the offset alert time in minutes.
         """
-        return AlarmDb().get_prealert_time()
+        return AlarmDb().get_offset_alert_time()
 
     @staticmethod
-    def set_prealert_time(prealert_time):
+    def set__offset_alert_time(offset_alert_time):
         """
-        Static method, sets the pre-alert time (the time before the alarm alert
-        is triggered), used to set some action before the alarm rings.
-        :param prealert_time: Integer, pre-alert time in minutes.
+        Static method, sets the offset alert time (the time before or after the
+        alarm alert is triggered), used to set some additional action to the
+        alarm alert.
+        :param offset_alert_time: Integer, offset alert time in minutes.
         :return: Boolean indicating the operation success.
         """
-        return AlarmDb().set_prealert_time(prealert_time)
-
+        return AlarmDb().set_offset_alert_time(offset_alert_time)
 
     #
     # static methods to retrieve alarms
@@ -328,9 +331,9 @@ class AlarmManager(object):
                     if alarm_thread.isAlive() is False:
                         self.__alarm_threads[i] = AlarmThread(
                             alarm,
-                            alarm_callback=self.__alarm_callback,
-                            offset_alarm_time=self.get_prealert_time(),
-                            offset_callback=self.__pre_alarm_callback)
+                            alarm_callback=self.__alert_callback,
+                            offset_alarm_time=self.get_offset_alert_time(),
+                            offset_callback=self.__offset_alert_callback)
                         self.__alarm_threads[i].start()
                     thread_up = alarm_thread.isAlive()
                 break
@@ -340,9 +343,9 @@ class AlarmManager(object):
             if alarm.is_active() is True:
                 alarm_thread = AlarmThread(
                     alarm,
-                    alarm_callback=self.__alarm_callback,
-                    offset_alarm_time=self.get_prealert_time(),
-                    offset_callback=self.__pre_alarm_callback)
+                    alarm_callback=self.__alert_callback,
+                    offset_alarm_time=self.get_offset_alert_time(),
+                    offset_callback=self.__offset_alert_callback)
                 self.__alarm_threads.append(alarm_thread)
                 alarm_thread.start()
                 thread_up = alarm_thread.isAlive()

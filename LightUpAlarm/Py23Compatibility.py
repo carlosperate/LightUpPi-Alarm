@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This module contains some utilities to maintain compatibility between python 2.5+ and 3
 """

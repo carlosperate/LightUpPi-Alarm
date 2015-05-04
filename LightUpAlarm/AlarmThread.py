@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Class to have alarms running on their own threads.
 #
@@ -9,9 +9,11 @@
 # This file only contains a class definition, which description can be found in
 # its docstring.
 #
-from __future__ import unicode_literals, absolute_import, print_function
+from __future__ import (unicode_literals, absolute_import, print_function,
+    division)
 import sys
 import time
+import random
 import threading
 
 
@@ -187,7 +189,7 @@ class AlarmThread(threading.Thread):
         """
         # Try to block reentry
         while cls.__alert_running is True:
-            time.sleep(0.01)
+            time.sleep(float(random.randint(1, 100)) / 1000.0)
         # Now should be safe to execute
         cls.__alert_running = True
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 # Command line interface for the LightUpAlarm package.
@@ -49,7 +48,7 @@ class AlarmCli(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.alert_running = False
         if alarm_mgr is None:
-            self.alarm_mgr = AlarmManager(alarm_callback=self.alarm_alert)
+            self.alarm_mgr = AlarmManager(alert_callback=self.alarm_alert)
         else:
             self.alarm_mgr = alarm_mgr
 
@@ -382,28 +381,29 @@ class AlarmCli(cmd.Cmd):
         self.display_alarms()
         print(snooze_text + ' %s' % self.alarm_mgr.get_snooze_time())
 
-    def do_prealert(self, new_prealert_str):
-        """Help prealert:
-        Displays the currently set pre-alert time, (time before the alarm alert
-        is triggered and used to launch any kind of process), or if accompanied
-        by an integer it will change the pre-alert time and display the new
-        value. E.g.:
-        'prealert'
-        'prealert 5'
+    def do_offsetalert(self, new_offset_alert_str):
+        """Help offsetalert:
+        Displays the currently set offset alert time, (time before the alarm
+        alert is triggered and used to launch any kind of process), or if
+        accompanied by an integer it will change the offset alert time and
+        display the new value. E.g.:
+        'offsetalert'
+        'offsetalert 5'
+        'offsetalert -15'
         """
-        prealert_text = 'Pre-alert time is:'
-        if new_prealert_str:
+        offset_alert_text = 'Offset alert time is: '
+        if new_offset_alert_str:
             try:
-                new_prealert_str = int(new_prealert_str)
+                new_offset_alert_str = int(new_offset_alert_str)
             except ValueError:
-                print('To edit the pre-alert time, the prealert command must be'
-                      'followed a valid number !')
+                print('To edit the offset alert time, the offsetalert command '
+                      'must be followed a valid number !')
                 return
-            prealert_text = 'New pre-alert time is:'
-            self.alarm_mgr.set_prealert_time(new_prealert_str)
+            offset_alert_text = 'New offset alert time is: '
+            self.alarm_mgr.set__offset_alert_time(new_offset_alert_str)
 
         self.display_alarms()
-        print(prealert_text + ' %s' % self.alarm_mgr.get_prealert_time())
+        print(offset_alert_text + '%s' % self.alarm_mgr.get_offset_alert_time())
 
     #
     # General command methods

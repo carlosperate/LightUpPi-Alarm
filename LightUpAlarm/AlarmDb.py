@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Manages an Sqlite database for the alarms
 #
@@ -25,7 +25,7 @@
 # It also contains a 'settings' table to contain general alarm configuration
 # settings. The rows and columns are predetermined to the following
 # configuration for simple conversion to json.
-#   row 1 -> column 'snooze_time', column 'prealert_time'
+#   row 1 -> column 'snooze_time', column 'offset_alert_time'
 #
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
@@ -62,7 +62,7 @@ class AlarmDb(object):
         AlarmDbHelper initialiser. It can take an argument to indicate the
         sqlite database filename.
         By default if no settings are found in the db it wll add the snooze
-        time to be 3 min, and the pre-alert time to be -15 min.
+        time to be 3 min, and the offset alert time to be -15 min.
         :param db_name: Optional string indicating the database filename.
         """
         if isinstance(db_name, str_type):
@@ -77,7 +77,7 @@ class AlarmDb(object):
         settings_table = self.__connect_settings()
         rows = settings_table.all()
         if rows.count == 0:
-            settings_table.insert(dict(snooze_time=3, prealert_time=-15))
+            settings_table.insert(dict(snooze_time=3, offset_alert_time=-15))
 
     #
     # db connection member functions
@@ -118,36 +118,36 @@ class AlarmDb(object):
         settings_dict = settings_table.find_one(id=1)
         return settings_dict['snooze_time']
 
-    def set_prealert_time(self, prealert_time):
+    def set_offset_alert_time(self, offset_alert_time):
         """
-        Sets the pre-alert time (the time before the alarm alert is triggered),
-        used to set some action before the alarm rings.
-        :param prealert_time: Integer, pre-alert time in minutes.
+        Sets the offset alert time (the time before or after the alarm alert is
+        triggered), used to set some additional action to the alarm alert.
+        :param offset_alert_time: Integer, offset alert time in minutes.
         :return: Boolean indicating the operation success.
         """
-        if isinstance(prealert_time, types.IntType):
+        if isinstance(offset_alert_time, types.IntType):
             settings_table = self.__connect_settings()
             success = settings_table.update(
-                dict(id=1, prealert_time=prealert_time), ['id'])
+                dict(id=1, offset_alert_time=offset_alert_time), ['id'])
             return success
         else:
             return False
 
-    def get_prealert_time(self):
+    def get_offset_alert_time(self):
         """
-        Retrieves from the settings table the pre-alert time (the time before
-        the alarm alert is triggered), used to set some action before the
-        alarm rings.
-        :return: Integer, the pre-alert time in minutes.
+        Retrieves from the settings table the offset alert time (the time before
+        or after the alarm alert is triggered), used to set some additional
+        action to the alarm alert.
+        :return: Integer, the offset alert time in minutes.
         """
         settings_table = self.__connect_settings()
         settings_dict = settings_table.find_one(id=1)
-        return settings_dict['prealert_time']
+        return settings_dict['offset_alert_time']
 
     def reset_settings(self):
         """
         Resets the settings table to the default settings (3 min snooze time,
-        and 15 min prealert time).
+        and 15 min offset alert time).
         :return: Boolean indicating the operation success.
         """
         settings_table = self.__connect_settings()
@@ -155,7 +155,7 @@ class AlarmDb(object):
         if success is True:
             settings_table = self.__connect_settings()
             insert_success = settings_table.insert(
-                dict(snooze_time=3, prealert_time=15))
+                dict(snooze_time=3, offset_alert_time=-15))
             success = bool(insert_success)
         return success
 

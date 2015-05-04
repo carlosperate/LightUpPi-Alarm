@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Unit test for the AlarmManager class.
 #
@@ -8,7 +9,8 @@
 # The following methods are basically a call to the AlarmDb class and do not
 # need to be tested:
 #  get_all_alarms, get_number_of_alarms, get_all_enabled_alarms, get_alarm,
-#  get_snooze_time, set_snooze_time, get_prealert_time, set_prealert_time
+#  get_snooze_time, set_snooze_time, get_offset_alert_time,
+#  set_offset_alert_time
 #
 from __future__ import unicode_literals, absolute_import
 import io
@@ -478,7 +480,7 @@ class AlarmManagerTestCase(unittest.TestCase):
             time_now.tm_hour, time_now.tm_min,
             days=(True, True, True, True, True, True, True), enabled=True,
             alarm_id=96)
-        alarm_mgr = AlarmManager(alarm_callback=AlarmManagerTestCase.c)
+        alarm_mgr = AlarmManager(alert_callback=AlarmManagerTestCase.c)
         alarm_mgr.delete_all_alarms()
         launch_success = alarm_mgr._AlarmManager__set_alarm_thread(alarm)
         self.assertTrue(launch_success)

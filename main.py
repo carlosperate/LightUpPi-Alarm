@@ -145,15 +145,15 @@ def main(argv):
         # For the server we only set the offset alarm, as it is meant to be run
         # headless and nothing else will be connected to ring/alert
         alarm_mgr = AlarmManager.AlarmManager(
-            pre_alarm_callback=alarm_offset_alert)
+            offset_alert_callback=alarm_offset_alert)
         Server.run(alarm_mgr_arg=alarm_mgr)
     else:
         # The command line interface running on its own thread is common to
         # the 'cli' and 'both' options.
         cli_thread = CliThread()
         alarm_mgr = AlarmManager.AlarmManager(
-            alarm_callback=cli_thread.alarm_alert,
-            pre_alarm_callback=alarm_offset_alert)
+            alert_callback=cli_thread.alarm_alert,
+            offset_alert_callback=alarm_offset_alert)
         cli_thread.attach_alarm_mgr(alarm_mgr)
         cli_thread.start()
         # Infinite loop can be the Flask server, or just a loop

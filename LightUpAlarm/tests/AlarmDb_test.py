@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Unit test for the AlarmDb class.
 #
@@ -396,43 +397,43 @@ class AlarmDbTestCase(unittest.TestCase):
         self.assertFalse(success)
         self.assertEquals(adh.get_snooze_time(), 5)
 
-    def test_prealert_time(self):
-        """ Test the accessor for the db prealert time setting. """
+    def test_offset_alert_time(self):
+        """ Test the accessor for the db offset_alert time setting. """
         adh = AlarmDb(self.db_name)
 
         # Valid negative data
-        success = adh.set_prealert_time(-1)
+        success = adh.set_offset_alert_time(-1)
         self.assertTrue(success)
-        self.assertEquals(adh.get_prealert_time(), -1)
+        self.assertEquals(adh.get_offset_alert_time(), -1)
 
         # Valid positive data
-        success = adh.set_prealert_time(5)
+        success = adh.set_offset_alert_time(5)
         self.assertTrue(success)
-        self.assertEquals(adh.get_prealert_time(), 5)
+        self.assertEquals(adh.get_offset_alert_time(), 5)
 
         # Invalid data should maintain old value
-        success = adh.set_prealert_time(2.5)
+        success = adh.set_offset_alert_time(2.5)
         self.assertFalse(success)
-        self.assertEquals(adh.get_prealert_time(), 5)
+        self.assertEquals(adh.get_offset_alert_time(), 5)
 
-        success = adh.set_prealert_time('3')
+        success = adh.set_offset_alert_time('3')
         self.assertFalse(success)
-        self.assertEquals(adh.get_prealert_time(), 5)
+        self.assertEquals(adh.get_offset_alert_time(), 5)
 
     def test_reset_settings(self):
         """ Test reset settings. """
         adh = AlarmDb(self.db_name)
         success = adh.set_snooze_time(321)
         self.assertTrue(success)
-        success = adh.set_prealert_time(123)
+        success = adh.set_offset_alert_time(123)
         self.assertTrue(success)
         self.assertEquals(adh.get_snooze_time(), 321)
-        self.assertEquals(adh.get_prealert_time(), 123)
+        self.assertEquals(adh.get_offset_alert_time(), 123)
 
         success = adh.reset_settings()
         self.assertTrue(success)
         self.assertNotEquals(adh.get_snooze_time(), 321)
-        self.assertNotEquals(adh.get_prealert_time(), 123)
+        self.assertNotEquals(adh.get_offset_alert_time(), 123)
 
 if __name__ == '__main__':
     unittest.main()

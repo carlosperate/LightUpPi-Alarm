@@ -82,14 +82,15 @@ edit 1 repeat mon fri
 ### next
 Displays the next scheduled alarm to alert.
 
-### prealert
-Displays the currently set pre-alert time, (time before the alarm alert
+### offsetalert
+Displays the currently set offset alert time, (time before the alarm alert
 is triggered and used to launch any kind of process), or if accompanied
-by an integer it will change the pre-alert time and display the new
+by an integer it will change the offset alert time and display the new
 value. E.g.:
 ```
-prealert
-prealert 5
+offsetalert
+offsetalert 5
+offsetalert -15
 ```
 
 ### snooze
