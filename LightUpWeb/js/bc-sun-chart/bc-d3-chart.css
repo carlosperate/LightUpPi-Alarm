@@ -1,0 +1,9 @@
+:host {
+  display: block;
+}
+
+.chartContainer {
+  background-color: #ccccdd;
+  border: 1px solid #ffffff;
+  margin: 0px;
+}

@@ -1,0 +1,14 @@
+*.a
+*.asc
+*.o
+*.tar.gz
+*.txt
+*~
+ChangeLog
+date
+leapseconds
+tzselect
+version.h
+yearistype
+zdump
+zic

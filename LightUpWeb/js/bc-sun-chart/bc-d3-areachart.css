@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  color: red;
+}
+
+:host::shadow .chartContainer {
+  background-color: #ccccdd;
+  border: 2px solid #ffffff;
+  margin: 0px;
+}
+:host::shadow .area-chart {
+/*        fill: #446687;*/
+  fill: steelblue;
+  stroke: white;
+  stroke-width: 2px;
+}
+
+:host::shadow .centerline {
+  stroke: orange;
+  stroke-opacity: .4;
+  stroke-width: 2px;
+  shape-rendering: crispEdges;
+}
+
+:host::shadow .axis path, :host .axis line {
+  fill: none;
+	stroke: #000;
+ 	shape-rendering: crispEdges;
+}
+
+:host::shadow .chartContainer text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+  fill: steelblue;
+}
+
+:host::shadow .data-point {
+  fill: steelblue;
+  fill-opacity: 1;
+  /*stroke: #ccccdd;*/
+  stroke: white;
+  stroke_opacity: 1;
+  stroke-width: 2px;
+}
+
+:host::shadow g.context g.axis path {
+	stroke-opacity: 0;
+}
+
+:host::shadow g.context g.axis line {
+	stroke-opacity: .1;
+}
+
+:host::shadow g.tick text {
+  color: rgb(0, 0, 0);
+  fill: #000000;
+}

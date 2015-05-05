@@ -1,0 +1,320 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="bc-d3-base.html">
+
+<!--
+bc-d3-chart is not a standalone component. It should be extended to create
+the other bc-d3 graphs.
+
+@todo:
+  - handle "loading" and "error" conditions
+  - tooltips in data
+
+##### Example
+
+    <bc-d3-chart></bc-d3-chart>
+
+@element bc-d3-chart
+@blurb Provides an svg element and d3.js. Designed to be extended.
+@status alpha
+@homepage https://github.com/BilgeCode/bc-d3-chart
+-->
+<polymer-element
+  name="bc-d3-chart"
+  extends="bc-d3-base"
+  attributes="data domain height width debug centerline">
+
+  <template>
+
+    <link rel="stylesheet" href="bc-d3-chart.css" />
+
+    <svg id="chart"
+      class="chartContainer"
+      style="height:{{height}}px;width:{{width}}px;"></svg>
+
+  </template>
+
+  <script>
+
+    Polymer('bc-d3-chart', {
+
+      /**
+       * The `data` attribute is the array of data passed to the chart.
+       * data is assumed to be of the format [{xval: , yVal: }...]
+       *
+       * @attribute data
+       * @type array
+       */
+      data: null,
+
+      /**
+       * The `domain` attribute is the data domain to display in the chart.
+       *
+       * @attribute domain
+       * @type array
+       */
+      domain: null,
+
+      /**
+       * The `height` attribute is the height of the chart in pixels.
+       *
+       * @attribute height
+       * @type int
+       */
+      height: 80,
+
+      /**
+       * The `width` attribute is the width of the chart in pixels.
+       *
+       * @attribute width
+       * @type int
+       */
+      width: 120,
+
+      /**
+       * The `centerline` attribute is a flag indicating that the chart should
+       * have a line drawn down the center
+       *
+       * @attribute centerline
+       * @type bool
+       */
+      centerline: false,
+
+      /**
+       * The `yAxisWidth` is a property used prepare for a y-axis (pixels)
+       *
+       * @property yAxisWidth
+       * @type int
+       */
+      yAxisWidth: 25,
+
+      /**
+       * The `xAxisWidth` is a property used prepare for a x-axis (pixels)
+       *
+       * @property xAxisWidth
+       * @type int
+       */
+      yAxisWidth: 0,
+
+      /**
+       * The `paddingTop` indicates how many pixels to keep between the chart
+       * area and the top boundary of the chart
+       *
+       * @property paddingTop
+       * @type int
+       */
+      paddingTop: 0,
+
+      /**
+       * The `paddingBottom` indicates how many pixels to keep between the chart
+       * area and the bottom boundary of the chart
+       *
+       * @property paddingBottom
+       * @type int
+       */
+      paddingBottom: 0,
+
+      /**
+       * The `xScale` propety is a d3 scale calculated from the domain and
+       * size of the chart
+       *
+       * @property xScale
+       * @type d3.scale
+       */
+      xScale: null,
+
+      /**
+       * The `xScale` propety is a d3 scale calculated from the domain and
+       * size of the chart
+       *
+       * @property yScale
+       * @type d3.scale
+       */
+      yScale: null,
+
+      /**
+       * The `chartContainer` provides access to the chart svg
+       *
+       * @property chartContainer
+       * @type svg object
+       */
+      chartContainer: null,
+
+      ready: function() {
+        this.chartContainer = d3.select(this.$.chart);
+      },
+
+      /**
+       * The `clearGraph` method does no work at this time. Extend it.
+       *
+       * @method clearGraph
+       * @return {Object} Returns undefined.
+       */
+      clearGraph: function() {
+        this.log("Not implemented: this.clearGraph()");
+      },
+
+      /**
+       * The `createGraph` method does no work at this time. Extend it.
+       *
+       * @method createGraph
+       * @return {Object} Returns undefined.
+       */
+      createGraph: function() {
+        this.log("Not implemented: this.createGraph()");
+      },
+
+      /**
+       * The `drawCenterLine` method adds a line down the middle of the chart.
+       *
+       * @method drawCenterLine
+       * @return {Object} Returns undefined.
+       */
+      drawCenterLine: function() {
+        this.chartContainer.append("svg:line")
+          .attr("class", "centerline")
+          .attr("x1", this.width / 2)
+          .attr("y1", 0)
+          .attr("x2", this.width / 2)
+          .attr("y2", this.height)
+          .style("stroke-dasharray", ("10, 8"));
+      },
+
+      /**
+       * The `getXDomain` establishes the x-domain of the data from the data
+       * itself, only if the domain attribute is undefined
+       *
+       * @method getXDomain
+       * @return {Object} Returns undefined.
+       */
+      getXDomain: function() {
+        if(this.domain == undefined) {
+          return d3.extent(this.data, function(d) { return d.xVal; });
+        }
+        else {
+          return this.domain;
+        }
+      },
+
+      /**
+       * The `getYDomain` establishes the y-domain of the data from the data
+       * itself, only if the domain attribute is undefined
+       *
+       * @method getYDomain
+       * @return {Object} Returns undefined.
+       */
+      getYDomain: function() {
+        return [
+            d3.min(this.data, function(d) { return d.yVal; }),
+            d3.max(this.data, function(d) { return d.yVal; })
+          ];
+      },
+
+      /**
+       * The `updateScales` sets x and y scales based on the domain and size
+       *
+       * @method updateScales
+       * @return {Object} Returns undefined.
+       */
+      updateScales: function() {
+        // @todo: memory management (can I avoid recreating?)
+        this.updateXScale();
+        this.updateYScale();
+      },
+
+      /**
+       * The `updateXScale` sets xScale property based on the domain and size
+       *
+       * @method updateXScale
+       * @return {Object} Returns undefined.
+       */
+      updateXScale: function() {
+        this.xScale = d3.time.scale()
+          .range([this.yAxisWidth, this.width-5])
+          .domain(this.getXDomain());
+      },
+
+      /**
+       * The `updateYScale` sets yScale property based on the domain and size
+       *
+       * @method updateYScale
+       * @return {Object} Returns undefined.
+       */
+      updateYScale: function() {
+        this.yScale = d3.scale.linear()
+          .range([this.height - this.paddingBottom,0 + this.paddingTop])
+          .domain(this.getYDomain());
+      },
+
+      /**
+       * The `updateGraph` method does no work at this time. Extend it.
+       *
+       * @method updateGraph
+       * @return {Object} Returns undefined.
+       */
+      updateGraph: function() {
+        if(this.debug) {
+          this.log("Not implemented: this.updateGraph()");
+        }
+      },
+
+      /**
+       * The `dataChanged` observes the data attribute and updates the chart
+       *
+       * @method dataChanged
+       * @return {Object} Returns undefined.
+       */
+      dataChanged: function() {
+        this.log("data changed!");
+        this.log(this.data);
+        this.clearGraph();
+        this.createGraph();
+      },
+
+      /**
+       * The `widthChanged` observes the width attribute and updates the chart
+       *
+       * @method widthChanged
+       * @return {Object} Returns undefined.
+       */
+      widthChanged: function() {
+        this.log("WIDTH CHANGED:" + this.width);
+        this.updateGraph();
+        if(this.centerline) {
+          this.chartContainer.selectAll(".centerline")
+            .attr("x1", this.width / 2)
+            .attr("x2", this.width / 2);
+        }
+      },
+
+      /**
+       * The `heightChanged` observes the height attribute and updates the chart
+       *
+       * @method heightChanged
+       * @return {Object} Returns undefined.
+       */
+      heightChanged: function() {
+        this.log("HEIGHT CHANGED: " + this.height);
+        this.updateGraph();
+        if(this.centerline) {
+          this.chartContainer.selectAll(".centerline")
+            .attr("y2", this.height);
+        }
+      },
+
+      /**
+       * The `domainChanged` observes the domain attribute and updates the chart
+       *
+       * @method domainChanged
+       * @return {Object} Returns undefined.
+       */
+      domainChanged: function() {
+        this.log("Domain Changed: ");
+        this.log(this.domain);
+        this.updateGraph();
+      }
+
+    });
+
+  </script>
+
+</polymer-element>

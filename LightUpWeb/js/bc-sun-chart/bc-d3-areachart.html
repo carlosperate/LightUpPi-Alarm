@@ -1,0 +1,315 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="bc-d3-chart.html">
+
+<!--
+Element draws an svg area chart using d3.js
+
+##### Example
+
+    <bc-d3-areachart
+      data="{{data}}"
+      height="{{height}}"
+      width="{{width}}"></bc-d3-areachart>
+
+@element bc-d3-areachart
+@blurb Element draws an svg singraph using d3.js
+@status alpha
+@homepage https://github.com/BilgeCode/bc-d3-areachart
+-->
+<polymer-element
+  name="bc-d3-areachart"
+  extends="bc-d3-chart"
+  attributes="showpoints interpolation">
+
+  <template>
+    <link rel="stylesheet" href="bc-d3-areachart.css" />
+    <shadow></shadow>
+  </template>
+
+  <script>
+
+    Polymer('bc-d3-areachart', {
+      /**
+       * The `debug` attribute tells the brush to print debugging information
+       * to the console if available
+       *
+       * @attribute debug
+       * @type bool
+       */
+      // inherited
+
+      /**
+       * The `domain` attribute is the domain which the brush will cover
+       *
+       * @attribute domain
+       * @type {Array}
+       */
+      // inherited
+
+      /**
+       * The `height` attribute is the height in pixels of the svg element
+       *
+       * @attribute height
+       * @type int
+       */
+      // inherited
+
+      /**
+       * The `interpolation` attribute passes the interpolation to the d3.area
+       *
+       * @attribute interpolation
+       * @type string
+       */
+      interpolation: "cardinal",
+
+      /**
+       * The `showpoints` attribute indicates if the points should be displayed
+       * along the line of the graph
+       *
+       * @attribute showpoints
+       * @type bool
+       */
+      showpoints: false,
+
+      /**
+       * The `width` attribute is the width in pixels of the svg element
+       *
+       * @attribute width
+       * @type int
+       */
+      // inherited
+
+      /**
+       * The `areaClassName` is a property identifying a class name for the d3
+       * area graph
+       *
+       * @property areaClassName
+       * @type bool
+       */
+      areaClassName: "area-chart",
+
+      // Defined in bc-d3-chart
+      paddingTop: 16,
+      paddingBottom: 10,
+
+      /**
+       * The `yAxis` is a property holding the d3 (y) axis for the graph
+       *
+       * @property yAxis
+       * @type {Object} d3.axis
+       */
+      yAxis: null,
+
+      /**
+       * The `clearGraph` method removes all the temporary relics of the chart
+       *
+       * @method clearGraph
+       * @return {Object} Returns undefined.
+       */
+      clearGraph: function() {
+        this.chartContainer.selectAll(".area-chart").remove();
+        this.chartContainer.selectAll(".axis").remove();
+        this.chartContainer.selectAll(".centerline").remove();
+        this.chartContainer.selectAll(".data-point").remove();
+      },
+
+      /**
+       * The `createArea` method creates the d3.area object
+       *
+       * @method createArea
+       * @return {Object} Returns undefined.
+       */
+      createArea: function() {
+        var xS = this.xScale;
+        var yS = this.yScale;
+        var h = this.height;
+
+        // create the area
+        this.area = this.drawArea(this.data, this.areaClassName);
+        if(this.showpoints) {
+            this.drawPoints(this.data, this.areaClassName);
+        }
+
+        if(this.centerline) {
+          this.drawCenterLine();
+        }
+      },
+
+      /**
+       * The `createAxes` method initializes the d3 axes
+       *
+       * @method createAxes
+       * @return {Object} Returns undefined.
+       */
+      createAxes: function() {
+        this.yAxis = d3.svg.axis().scale(this.yScale).orient("right").ticks(3);
+
+        this.chartContainer.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(5,0)")
+          .call(this.yAxis);
+      },
+
+      /**
+       * The `createGraph` method initializes the d3 area chart by updating the
+       * scales and axis and then calling `updateGraph`
+       *
+       * @method createGraph
+       * @return {Object} Returns undefined.
+       */
+      createGraph: function() {
+
+        this.log("DRAWING CHART");
+        this.log("width" + this.width);
+        this.log("height" + this.height);
+
+        this.clearGraph();
+        this.updateScales();
+
+        this.createArea();
+        this.createAxes();
+
+        this.updateGraph();
+      },
+
+      /**
+       * The `drawArea` method draws the d3 area chart
+       *
+       * @method drawArea
+       * @return {Object} Returns undefined.
+       */
+      drawArea: function(data, className) {
+        var xS = this.xScale;
+        var yS = this.yScale;
+        var area = d3.svg.area()
+          .interpolate(this.interpolation)
+          .x(function(d) { return xS(d.xVal); })
+          .y0(this.height)
+          .y1(function(d) { return yS(d.yVal); });
+
+        this.chartContainer.append("path")
+          .data([data])
+          .attr("class", "area-chart " + className)
+          .attr("d", area);
+
+        return area;
+      },
+
+      /**
+       * The `drawPoints` method draws the points along the sin graph
+       *
+       * @method drawPoints
+       * @return {Object} Returns undefined.
+       */
+      drawPoints: function(data, className) {
+        var xS = this.xScale;
+        var yS = this.yScale;
+
+        // Draw circles for each data point
+        var circles = this.chartContainer.append('g')
+          .selectAll('.data-point-' + className)
+          .data(data);
+
+        circles
+          .enter()
+          .append('svg:circle')
+          .attr('class', 'data-point data-point-' + className)
+          .attr('cx', function(d) { return xS(d.xVal); })
+          .attr('cy', function(d) { return yS(d.yVal); })
+          .attr('r', 5);
+      },
+
+      /**
+       * The `redrawArea` method updates the d3 area chart
+       *
+       * @method redrawArea
+       * @return {Object} Returns undefined.
+       */
+      redrawArea: function(area, data, className) {
+        var xS = this.xScale;
+        var yS = this.yScale;
+        var h = this.height;
+
+        area
+          .x(function(d) { return xS(d.xVal); })
+          .y0(h)
+          .y1(function(d) { return yS(d.yVal); });
+
+        this.chartContainer
+          .select("." + className)
+          .data([data])
+          .attr("d", area);
+      },
+
+      /**
+       * The `redrawPoints` method updates the points along the sin graph
+       *
+       * @method redrawPoints
+       * @return {Object} Returns undefined.
+       */
+      redrawPoints: function(data, className) {
+        var xS = this.xScale;
+        var yS = this.yScale;
+
+        this.chartContainer
+          .selectAll('.data-point-' + className)
+          .attr('cx', function(d) { return xS(d.xVal); })
+          .attr('cy', function(d) { return yS(d.yVal); })
+          .data(data);
+      },
+
+      /**
+       * The `updateArea` method updates the d3.area object
+       *
+       * @method updateArea
+       * @return {Object} Returns undefined.
+       */
+      updateArea: function() {
+        var xS = this.xScale;
+        var yS = this.yScale;
+        var h = this.height;
+
+        // update the area
+        this.redrawArea(this.area, this.data, this.areaClassName);
+
+        if(this.showpoints) {
+          this.redrawPoints(this.data, this.areaClassName);
+        }
+
+        if(this.centerline) {
+          this.drawCenterLine();
+        }
+      },
+
+      /**
+       * The `updateAxes` method resets the yAxis
+       *
+       * @method updateAxes
+       * @return {Object} Returns undefined.
+       */
+      updateAxes: function() {
+        // @todo: bc-d3-areachart should have xAxis by default
+        this.yAxis.scale(this.yScale);
+        this.chartContainer.selectAll("g.y")
+          .call(this.yAxis);
+      },
+
+      /**
+       * The `updateGraph` method builds the d3 area chart
+       *
+       * @method updateGraph
+       * @return {Object} Returns undefined.
+       */
+      updateGraph: function() {
+        this.log("Updating Graph.");
+
+        this.updateScales();
+        this.updateArea();
+        this.updateAxes();
+      }
+
+    });
+
+  </script>
+
+</polymer-element>

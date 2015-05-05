@@ -1,0 +1,59 @@
+<!--
+Copyright 2014 Benjamin W Stookey. All rights reserved.
+Use of this source code is governed by a MIT-style
+license that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+
+Base element for all bc-d3 graphs. Simply includes d3.js.
+
+##### Example
+
+    <bc-d3-base></bc-d3-base>
+
+@element bc-d3-base
+@blurb Base element for all bc-d3 graphs. Simply includes d3.js.
+@status alpha
+@homepage https://github.com/BilgeCode/bc-d3-base
+-->
+<polymer-element name="bc-d3-base" attributes="debug">
+
+  <script src="../d3/d3.min.js"></script>
+
+  <template></template>
+
+  <script>
+
+    Polymer('bc-d3-base', {
+
+      /**
+       * The `debug` attribute is just a flag to reflect a debugging mode.
+       *
+       * @attribute debug
+       * @type bool
+       */
+      debug: false,
+
+      /**
+       * The `log` method is a handy logging tool for debugging elements.
+       * all elements can keep log() methods that will only run when debugging.
+       *
+       * @method log
+       * @return prints to the console (if it exists)
+       * @logTxt {String} the string to be sent to the console
+       */
+      log: function(logTxt) {
+        // A quick console.log tool
+        if (this.debug && typeof console == "object") {
+          console.log("[" + this.tagName + "] " + logTxt);
+        }
+      }
+
+    });
+
+  </script>
+
+</polymer-element>

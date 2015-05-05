@@ -1,0 +1,68 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="bc-d3-areachart.html">
+
+<polymer-element name="bc-sun-areachart" attributes="" extends="bc-d3-areachart">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <shadow></shadow>
+  </template>
+  <script>
+    Polymer({
+      /**
+       * The `clearGraph` method removes all the temporary relics of the chart
+       *
+       * @method clearGraph
+       * @return {Object} Returns undefined.
+       */
+      clearGraph: function() {
+        this.super();
+        this.chartContainer.selectAll(".darkRect").remove();
+      },
+
+      /**
+       * No axis. This is used with bc-d3-dateline, but (@todo) should probably
+       * support axis of it's own...
+       */
+      createAxes: function() {
+        return;
+      },
+
+      /**
+       * The `createGraph` method initializes the d3 area chart by updating the
+       * scales and axis and then calling `updateGraph`
+       *
+       * @method createGraph
+       * @return {Object} Returns undefined.
+       */
+      createGraph: function() {
+        this.super();
+
+        this.chartContainer.append("svg:rect")
+          .attr("class", "darkRect")
+          .attr("x", 0)
+          .attr("y", this.height - 10)
+          .attr("width", this.width)
+          .attr("height", 10);
+      },
+
+      /**
+       * Domain is just daylight hours
+       */
+      getYDomain: function() {
+        return [0, 1];
+      },
+
+      /**
+       * No axis. This is used with bc-d3-dateline, but (@todo) should probably
+       * support axis of it's own...
+       */
+      updateAxes: function() {
+        return;
+      },
+    });
+  </script>
+</polymer-element>
