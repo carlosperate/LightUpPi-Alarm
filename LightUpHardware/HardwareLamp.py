@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Unicorn Hat light control functions
 #
@@ -6,7 +6,7 @@
 #
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, division
 import time
 import colorsys
 try:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Functions to control the coffee Belkin Wemo mains switch
 #
@@ -109,8 +109,3 @@ def test_switch():
     sleep(5)
     state = switch_off()
     print('Switch is now %s' % ('ON' if state else 'OFF'))
-
-
-if __name__ == '__main__':
-    test_switch()
-

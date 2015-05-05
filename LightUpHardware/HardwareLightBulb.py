@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Functions to control the room Philips Hue light bulb
 #
@@ -6,7 +6,7 @@
 #
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, division
 import time
 try:
     from LightUpHardware.phue.phue import *
@@ -14,7 +14,8 @@ except ImportError:
     from phue.phue import *
 
 
-# The Philips Hue light ID for the bedroom
+# The Philips Hue bridge IP and light ID for the bedroom
+BRIDGE_IP = '192.168.0.10'
 ROOM_LIGHT_BULB_ID = 4
 
 
@@ -43,7 +44,7 @@ def __connected_bridge():
     bridge = None
     while True:
         try:
-            bridge = Bridge('192.168.0.10')
+            bridge = Bridge(BRIDGE_IP)
             break
         except PhueRegistrationException:
             connect_str = 'This application needs to be registered in the ' \

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 #
 # Singleton Thread class to control the alarm alert hardware
 #
@@ -6,12 +6,13 @@
 #
 # Licensed under The MIT License (MIT), a copy can be found in the LICENSE file
 #
-from __future__ import unicode_literals, absolute_import, print_function
+from __future__ import (unicode_literals, absolute_import, print_function,
+    division)
 import sys
 import time
 import types
+import random
 import threading
-
 try:
     from LightUpHardware import HardwareLightBulb
     from LightUpHardware import HardwareSwitch
@@ -433,7 +434,7 @@ class HardwareThread(object):
             print("WARNING: LightUp Hardware already running, thread waiting.",
                   file=sys.stderr)
             while cls.__running is True:
-                time.sleep(0.1)
+                time.sleep(float(random.randint(1, 100)) / 1000.0)
         cls.__running = True
 
         # Launch thread
