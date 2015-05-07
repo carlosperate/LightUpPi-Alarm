@@ -65,23 +65,21 @@
         return;
       },
 
-      /** */
+      /** Updates the alarm lines in the graph. */
       updateAlarms: function() {
         for (var i=0; i<this.alarms.length; i++ ) {
           this.drawAlarmLine(this.alarms[i]);
         }
       },
 
-      /** */
+      /** Draws a line in graph the the given minute of the day */
       drawAlarmLine: function(minute) {
         var nowMinutes = (this.domain[0].getHours() * 60) + this.domain[0].getMinutes();
-        console.log('now: ' + nowMinutes);
         if (minute >= nowMinutes) {
           minute = minute - nowMinutes;
         } else {
           minute = (24 * 60) - (nowMinutes - minute);
         }
-        console.log('line: ' + minute);
         var x_pos = Math.round((this.width / (24 * 60)) * minute);
         this.chartContainer.append("svg:line")
           .attr("class", "centerline")

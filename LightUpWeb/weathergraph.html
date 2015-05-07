@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Weather Graph</title>
+  <script src="js/bc-sun-chart/platform/platform.js"></script>
+  <link rel="import" href="js/bc-sun-chart/bc-sun-chart.html">
+  <link rel="stylesheet" href="js/bc-sun-chart/bc-sun-chart.css">
+  <script src="js/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="js/bc-sun-chart/timezone-js/src/date.js"></script>
+  <style>
+    html {
+      background-color: #333;
+      color: white;
+      padding: 0;
+      margin: 0;
+      border: 0;
+    }
+    body {
+      padding: 0;
+      margin: 0;
+      border: 0;
+      line-height: 1;
+    }
+    canvas {
+      padding: 0;
+      margin: 0;
+      border: 0;
+      vertical-align: top;
+    }
+    a, a:visited {
+      color: steelblue;
+    }
+  </style>
+</head>
+
+<body unresolved>
+  <div id="header-weather">
+    <div class="weather-wrapper">
+      <canvas id="weather0" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp0">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather1" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp1">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather2" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp2">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather3" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp3">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather4" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp4">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather5" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp5">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather6" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp6">TBD °C</span>
+    </div><div class="weather-wrapper">
+      <canvas id="weather7" width="48" height="48" class="weather-icon"></canvas>
+      <span id="temp7">TBD °C</span>
+    </div>
+
+  </div>
+  <template is="auto-binding" id="demo-container">
+    <bc-sun-chart
+      height="100"
+      width="600"
+      dataDomain="{{dataDomain}}"
+      domain="{{domain}}"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      timezone="{{timezone}}"
+      debug="{{debug}}"
+      showpoints="{{showpoints}}"
+      centerline="{{centerline}}"
+      alarms="{{alarms}}"></bc-sun-chart>
+
+    <h2>Timezone: {{timezone}}</h2>
+
+    <h2>Position</h2>
+    <dl>
+      <dt>Latitude:</dt>
+      <dd>{{latitude}}</dd>
+      <dt>Longitude:</dt>
+      <dd>{{longitude}}</dd>
+    </dl>
+
+    <h2>Domain:</h2>
+    <dl>
+      <dt>Start:</dt>
+      <dd>{{domain[0]}}</dd>
+      <dt>End:</dt>
+      <dd>{{domain[1]}}</dd>
+    </dl>
+  </template>
+
+  <script src="js/skycons/skycons.js"></script>
+  <script src="js/weathergraph.js"></script>
+  <script>
+    timezoneJS.timezone.zoneFileBasePath = "js/bc-sun-chart/tz";
+    timezoneJS.timezone.loadingScheme = timezoneJS.timezone.loadingSchemes.PRELOAD_ALL;
+    timezoneJS.timezone.init({async: false});
+
+    var template = document.getElementById("demo-container");
+    template.debug = true;
+    template.showpoints = true;
+    template.centerline = false;
+    template.timezone = "GB";
+    template.latitude = 52.5833;
+    template.longitude = 2.1333;
+    template.alarms = [450, 600, 1320] // 7:30, 10:00, 22:00
+
+    var now = new Date();
+    var tomorrow = new Date().setTime(now.getTime() + (24*60*60*1000));
+    template.domain = [new timezoneJS.Date(now, template.timezone),
+                       new timezoneJS.Date(tomorrow, template.timezone)]
+    template.dataDomain = template.domain;
+  </script>
+</body>
+</html>
