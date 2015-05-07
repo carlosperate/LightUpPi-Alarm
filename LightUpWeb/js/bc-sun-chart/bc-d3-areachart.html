@@ -1,11 +1,8 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="bc-d3-chart.html">
-
 <!--
 Element draws an svg area chart using d3.js
 
 ##### Example
-
     <bc-d3-areachart
       data="{{data}}"
       height="{{height}}"
@@ -18,45 +15,109 @@ Element draws an svg area chart using d3.js
 -->
 <polymer-element
   name="bc-d3-areachart"
-  extends="bc-d3-chart"
-  attributes="showpoints interpolation">
-
+  attributes="data domain height width debug centerline showpoints interpolation">
+  <script src="../d3/d3.min.js"></script>
   <template>
     <link rel="stylesheet" href="bc-d3-areachart.css" />
+    <svg id="chart"
+      class="chartContainer"
+      style="height:{{height}}px;width:{{width}}px;"></svg>
     <shadow></shadow>
   </template>
-
   <script>
-
     Polymer('bc-d3-areachart', {
       /**
-       * The `debug` attribute tells the brush to print debugging information
-       * to the console if available
-       *
+       * The `debug` attribute is just a flag to reflect a debugging mode.
        * @attribute debug
        * @type bool
        */
-      // inherited
+      debug: false,
 
       /**
-       * The `domain` attribute is the domain which the brush will cover
-       *
-       * @attribute domain
-       * @type {Array}
+       * The `data` attribute is the array of data passed to the chart.
+       * data is assumed to be of the format [{xval: , yVal: }...]
+       * @attribute data
+       * @type array
        */
-      // inherited
+      data: null,
 
       /**
-       * The `height` attribute is the height in pixels of the svg element
-       *
+       * The `centerline` attribute is a flag indicating that the chart should
+       * have a line drawn down the center.
+       * @attribute centerline
+       * @type bool
+       */
+      centerline: false,
+
+      /**
+       * The `yAxisWidth` is a property used prepare for a y-axis (pixels).
+       * @property yAxisWidth
+       * @type int
+       */
+      yAxisWidth: 25,
+
+      /**
+       * The `xAxisWidth` is a property used prepare for a x-axis (pixels).
+       * @property xAxisWidth
+       * @type int
+       */
+      yAxisWidth: 0,
+
+      /**
+       * The `paddingTop` indicates how many pixels to keep between the chart
+       * area and the top boundary of the chart.
+       * @property paddingTop
+       * @type int
+       */
+      paddingTop: 16,
+
+      /**
+       * The `paddingBottom` indicates how many pixels to keep between the chart
+       * area and the bottom boundary of the chart.
+       * @property paddingBottom
+       * @type int
+       */
+      paddingBottom: 10,
+
+      /**
+       * The `xScale` propety is a d3 scale calculated from the domain and
+       * size of the chart.
+       * @property xScale
+       * @type d3.scale
+       */
+      xScale: null,
+
+      /**
+       * The `xScale` propety is a d3 scale calculated from the domain and
+       * size of the chart.
+       * @property yScale
+       * @type d3.scale
+       */
+      yScale: null,
+
+      /**
+       * The `domain` attribute is the data domain to display in the chart.
+       * @attribute domain
+       * @type array
+       */
+      domain: null,
+
+      /**
+       * The `height` attribute is the height of the chart in pixels.
        * @attribute height
        * @type int
        */
-      // inherited
+      height: 80,
+
+      /**
+       * The `width` attribute is the width of the chart in pixels.
+       * @attribute width
+       * @type int
+       */
+      width: 120,
 
       /**
        * The `interpolation` attribute passes the interpolation to the d3.area
-       *
        * @attribute interpolation
        * @type string
        */
@@ -65,100 +126,135 @@ Element draws an svg area chart using d3.js
       /**
        * The `showpoints` attribute indicates if the points should be displayed
        * along the line of the graph
-       *
        * @attribute showpoints
        * @type bool
        */
       showpoints: false,
 
       /**
-       * The `width` attribute is the width in pixels of the svg element
-       *
-       * @attribute width
-       * @type int
-       */
-      // inherited
-
-      /**
        * The `areaClassName` is a property identifying a class name for the d3
        * area graph
-       *
        * @property areaClassName
        * @type bool
        */
       areaClassName: "area-chart",
 
-      // Defined in bc-d3-chart
-      paddingTop: 16,
-      paddingBottom: 10,
-
       /**
        * The `yAxis` is a property holding the d3 (y) axis for the graph
-       *
        * @property yAxis
        * @type {Object} d3.axis
        */
       yAxis: null,
 
       /**
-       * The `clearGraph` method removes all the temporary relics of the chart
-       *
-       * @method clearGraph
-       * @return {Object} Returns undefined.
+       * The `log` method is a handy logging tool for debugging elements.
+       * all elements can keep log() methods that will only run when debugging.
+       * @method log
+       * @return prints to the console (if it exists)
+       * @logTxt {String} the string to be sent to the console
        */
-      clearGraph: function() {
-        this.chartContainer.selectAll(".area-chart").remove();
-        this.chartContainer.selectAll(".axis").remove();
-        this.chartContainer.selectAll(".centerline").remove();
-        this.chartContainer.selectAll(".data-point").remove();
+      log: function(logTxt) {
+        // A quick console.log tool
+        if (this.debug && typeof console == "object") {
+          console.log("[" + this.tagName + "] " + logTxt);
+        }
       },
 
       /**
-       * The `createArea` method creates the d3.area object
-       *
-       * @method createArea
-       * @return {Object} Returns undefined.
+       * The `chartContainer` provides access to the chart svg.
+       * @property chartContainer
        */
-      createArea: function() {
-        var xS = this.xScale;
-        var yS = this.yScale;
-        var h = this.height;
+      chartContainer: null,
+      ready: function() {
+        this.chartContainer = d3.select(this.$.chart);
+      },
 
-        // create the area
-        this.area = this.drawArea(this.data, this.areaClassName);
-        if(this.showpoints) {
-            this.drawPoints(this.data, this.areaClassName);
+      /**
+       * The `getXDomain` establishes the x-domain of the data from the data
+       * itself, only if the domain attribute is undefined.
+       */
+      getXDomain: function() {
+        if(this.domain == undefined) {
+          return d3.extent(this.data, function(d) { return d.xVal; });
         }
+        else {
+          return this.domain;
+        }
+      },
 
+      /**
+       * The `getYDomain` establishes the y-domain of the data from the data
+       * itself, only if the domain attribute is undefined.
+       */
+      getYDomain: function() {
+        return [
+            d3.min(this.data, function(d) { return d.yVal; }),
+            d3.max(this.data, function(d) { return d.yVal; })
+          ];
+      },
+
+      /** Sets x and y scales based on the domain and size. */
+      updateScales: function() {
+        // @todo: memory management (can I avoid recreating?)
+        this.updateXScale();
+        this.updateYScale();
+      },
+
+      /** Sets xScale property based on the domain and size. */
+      updateXScale: function() {
+        this.xScale = d3.time.scale()
+          .range([this.yAxisWidth, this.width-5])
+          .domain(this.getXDomain());
+      },
+
+      /** Sets yScale property based on the domain and size. */
+      updateYScale: function() {
+        this.yScale = d3.scale.linear()
+          .range([this.height - this.paddingBottom,0 + this.paddingTop])
+          .domain(this.getYDomain());
+      },
+
+      /** Observes the data attribute and updates the chart. */
+      dataChanged: function() {
+        this.log("data changed!");
+        this.log(this.data);
+        this.clearGraph();
+        this.createGraph();
+      },
+
+      /** Observes the width attribute and updates the chart. */
+      widthChanged: function() {
+        this.log("WIDTH CHANGED:" + this.width);
+        this.updateGraph();
         if(this.centerline) {
-          this.drawCenterLine();
+          this.chartContainer.selectAll(".centerline")
+            .attr("x1", this.width / 2)
+            .attr("x2", this.width / 2);
         }
       },
 
-      /**
-       * The `createAxes` method initializes the d3 axes
-       *
-       * @method createAxes
-       * @return {Object} Returns undefined.
-       */
-      createAxes: function() {
-        this.yAxis = d3.svg.axis().scale(this.yScale).orient("right").ticks(3);
+      /** Observes the height attribute and updates the chart. */
+      heightChanged: function() {
+        this.log("HEIGHT CHANGED: " + this.height);
+        this.updateGraph();
+        if(this.centerline) {
+          this.chartContainer.selectAll(".centerline")
+            .attr("y2", this.height);
+        }
+      },
 
-        this.chartContainer.append("g")
-          .attr("class", "y axis")
-          .attr("transform", "translate(5,0)")
-          .call(this.yAxis);
+      /** Observes the domain attribute and updates the chart. */
+      domainChanged: function() {
+        this.log("Domain Changed: ");
+        this.log(this.domain);
+        this.updateGraph();
       },
 
       /**
-       * The `createGraph` method initializes the d3 area chart by updating the
-       * scales and axis and then calling `updateGraph`
-       *
-       * @method createGraph
-       * @return {Object} Returns undefined.
+       * Initializes the d3 area chart by updating the scales and axis and then
+       * calling `updateGraph`.
        */
       createGraph: function() {
-
         this.log("DRAWING CHART");
         this.log("width" + this.width);
         this.log("height" + this.height);
@@ -172,12 +268,52 @@ Element draws an svg area chart using d3.js
         this.updateGraph();
       },
 
-      /**
-       * The `drawArea` method draws the d3 area chart
-       *
-       * @method drawArea
-       * @return {Object} Returns undefined.
-       */
+      /** Removes all the temporary relics of the chart. */
+      clearGraph: function() {
+        this.chartContainer.selectAll(".area-chart").remove();
+        this.chartContainer.selectAll(".axis").remove();
+        this.chartContainer.selectAll(".centerline").remove();
+        this.chartContainer.selectAll(".data-point").remove();
+      },
+
+      /** Adds a line down the middle of the chart. */
+      drawCenterLine: function() {
+        this.chartContainer.append("svg:line")
+          .attr("class", "centerline")
+          .attr("x1", this.width / 2)
+          .attr("y1", 0)
+          .attr("x2", this.width / 2)
+          .attr("y2", this.height)
+          .style("stroke-dasharray", ("10, 8"));
+      },
+
+      /** Creates the d3.area object. */
+      createArea: function() {
+        var xS = this.xScale;
+        var yS = this.yScale;
+        var h = this.height;
+
+        // create the area
+        this.area = this.drawArea(this.data, this.areaClassName);
+        if(this.showpoints) {
+            this.drawPoints(this.data, this.areaClassName);
+        }
+        if(this.centerline) {
+          this.drawCenterLine();
+        }
+      },
+
+      /** The `createAxes` method initializes the d3 axes. */
+      createAxes: function() {
+        this.yAxis = d3.svg.axis().scale(this.yScale).orient("right").ticks(3);
+
+        this.chartContainer.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(5,0)")
+          .call(this.yAxis);
+      },
+
+      /** The `drawArea` method draws the d3 area chart. */
       drawArea: function(data, className) {
         var xS = this.xScale;
         var yS = this.yScale;
@@ -195,12 +331,7 @@ Element draws an svg area chart using d3.js
         return area;
       },
 
-      /**
-       * The `drawPoints` method draws the points along the sin graph
-       *
-       * @method drawPoints
-       * @return {Object} Returns undefined.
-       */
+      /** The `drawPoints` method draws the points along the sin graph. */
       drawPoints: function(data, className) {
         var xS = this.xScale;
         var yS = this.yScale;
@@ -219,12 +350,7 @@ Element draws an svg area chart using d3.js
           .attr('r', 5);
       },
 
-      /**
-       * The `redrawArea` method updates the d3 area chart
-       *
-       * @method redrawArea
-       * @return {Object} Returns undefined.
-       */
+      /** The `redrawArea` method updates the d3 area chart. */
       redrawArea: function(area, data, className) {
         var xS = this.xScale;
         var yS = this.yScale;
@@ -241,12 +367,7 @@ Element draws an svg area chart using d3.js
           .attr("d", area);
       },
 
-      /**
-       * The `redrawPoints` method updates the points along the sin graph
-       *
-       * @method redrawPoints
-       * @return {Object} Returns undefined.
-       */
+      /** The `redrawPoints` method updates the points along the sin graph. */
       redrawPoints: function(data, className) {
         var xS = this.xScale;
         var yS = this.yScale;
@@ -258,12 +379,7 @@ Element draws an svg area chart using d3.js
           .data(data);
       },
 
-      /**
-       * The `updateArea` method updates the d3.area object
-       *
-       * @method updateArea
-       * @return {Object} Returns undefined.
-       */
+      /** The `updateArea` method updates the d3.area object. */
       updateArea: function() {
         var xS = this.xScale;
         var yS = this.yScale;
@@ -275,18 +391,12 @@ Element draws an svg area chart using d3.js
         if(this.showpoints) {
           this.redrawPoints(this.data, this.areaClassName);
         }
-
         if(this.centerline) {
           this.drawCenterLine();
         }
       },
 
-      /**
-       * The `updateAxes` method resets the yAxis
-       *
-       * @method updateAxes
-       * @return {Object} Returns undefined.
-       */
+      /** The `updateAxes` method resets the yAxis. */
       updateAxes: function() {
         // @todo: bc-d3-areachart should have xAxis by default
         this.yAxis.scale(this.yScale);
@@ -294,22 +404,13 @@ Element draws an svg area chart using d3.js
           .call(this.yAxis);
       },
 
-      /**
-       * The `updateGraph` method builds the d3 area chart
-       *
-       * @method updateGraph
-       * @return {Object} Returns undefined.
-       */
+      /** The `updateGraph` method builds the d3 area chart. */
       updateGraph: function() {
         this.log("Updating Graph.");
-
         this.updateScales();
         this.updateArea();
         this.updateAxes();
       }
-
     });
-
   </script>
-
 </polymer-element>

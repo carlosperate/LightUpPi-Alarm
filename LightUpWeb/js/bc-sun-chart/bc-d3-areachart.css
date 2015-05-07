@@ -18,7 +18,7 @@
 :host::shadow .centerline {
   stroke: orange;
   stroke-opacity: .4;
-  stroke-width: 2px;
+  stroke-width: 3px;
   shape-rendering: crispEdges;
 }
 

@@ -1,23 +1,29 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="bc-d3-areachart.html">
 
-<polymer-element name="bc-sun-areachart" attributes="" extends="bc-d3-areachart">
+<polymer-element
+  name="bc-sun-areachart"
+  attributes="alarms"
+  extends="bc-d3-areachart">
+
   <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
+    <link rel="stylesheet" href="bc-d3-areachart.css" />
     <shadow></shadow>
   </template>
   <script>
     Polymer({
       /**
-       * The `clearGraph` method removes all the temporary relics of the chart
-       *
-       * @method clearGraph
-       * @return {Object} Returns undefined.
+       * The `alarms` list attribute indicates the alarms in minutes of the day.
+       * @attribute alarms
+       * @type {Array}
        */
+      alarms: [],
+
+      observe: {
+        "alarms": "createGraph"
+      },
+
+      /** Removes all the temporary relics of the chart. */
       clearGraph: function() {
         this.super();
         this.chartContainer.selectAll(".darkRect").remove();
@@ -34,24 +40,19 @@
       /**
        * The `createGraph` method initializes the d3 area chart by updating the
        * scales and axis and then calling `updateGraph`
-       *
-       * @method createGraph
-       * @return {Object} Returns undefined.
        */
       createGraph: function() {
         this.super();
-
         this.chartContainer.append("svg:rect")
           .attr("class", "darkRect")
           .attr("x", 0)
           .attr("y", this.height - 10)
           .attr("width", this.width)
           .attr("height", 10);
+        this.updateAlarms()
       },
 
-      /**
-       * Domain is just daylight hours
-       */
+      /** Domain is just daylight hours */
       getYDomain: function() {
         return [0, 1];
       },
@@ -63,6 +64,33 @@
       updateAxes: function() {
         return;
       },
+
+      /** */
+      updateAlarms: function() {
+        for (var i=0; i<this.alarms.length; i++ ) {
+          this.drawAlarmLine(this.alarms[i]);
+        }
+      },
+
+      /** */
+      drawAlarmLine: function(minute) {
+        var nowMinutes = (this.domain[0].getHours() * 60) + this.domain[0].getMinutes();
+        console.log('now: ' + nowMinutes);
+        if (minute >= nowMinutes) {
+          minute = minute - nowMinutes;
+        } else {
+          minute = (24 * 60) - (nowMinutes - minute);
+        }
+        console.log('line: ' + minute);
+        var x_pos = Math.round((this.width / (24 * 60)) * minute);
+        this.chartContainer.append("svg:line")
+          .attr("class", "centerline")
+          .attr("x1", x_pos)
+          .attr("y1", 0)
+          .attr("x2", x_pos)
+          .attr("y2", this.height)
+          .style("stroke-dasharray", ("10, 8"));
+      }
     });
   </script>
 </polymer-element>

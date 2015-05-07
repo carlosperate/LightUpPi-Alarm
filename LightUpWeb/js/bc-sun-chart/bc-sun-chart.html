@@ -1,11 +1,9 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="bc-sun-areachart.html">
-
 <!--
 Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
 ##### Example
-
     <bc-sun-chart
       dataDomain="{{dataDomain}}"
       domain="{{displayDomain}}"
@@ -22,13 +20,11 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 -->
 <polymer-element
   name="bc-sun-chart"
-  attributes="centerline debug dataDomain domain latitude longitude height timezone width showpoints">
-
+  attributes="centerline debug dataDomain domain latitude longitude height timezone width alarms showpoints">
 
   <template>
-
     <link rel="stylesheet" href="bc-sun-chart.css" />
-
+    <link rel="stylesheet" href="bc-d3-areachart.css" />
     <bc-sun-areachart
       height="{{height}}"
       data="{{data}}"
@@ -36,17 +32,15 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
       width="{{width}}"
       debug="{{debug}}"
       centerline="{{centerline}}"
+      alarms="{{alarms}}"
       showpoints="{{showpoints}}"></bc-sun-areachart>
-
   </template>
 
   <script type="text/javascript" src="suncalc/suncalc.js"></script>
   <script>
-
     Polymer('bc-sun-chart', {
       /**
        * The `centerline` attribute sets the centerline flag
-       *
        * @attribute centerline
        * @type bool
        */
@@ -57,7 +51,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
        * If you want the domain to expand dynamically, it makes sense to have
        * the values pre-calculated. Eventually, we might want to use callbacks
        * to load this dynamically.
-       *
        * @attribute domain
        * @type {Array}
        */
@@ -65,7 +58,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
       /**
        * The `debug` attribute sets the debug flag... console output.
-       *
        * @attribute debug
        * @type bool
        */
@@ -73,7 +65,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
       /**
        * The `domain` attribute sets the timeframe to display
-       *
        * @attribute domain
        * @type {Array}
        */
@@ -81,7 +72,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
       /**
        * The `height` attribute describes the height in pixels
-       *
        * @attribute height
        * @type int
        */
@@ -89,7 +79,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
       /**
        * The `latitude` attribute is the latitude to calculate for
-       *
        * @attribute latitude
        * @type float
        */
@@ -97,7 +86,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
      /**
       * The `longitude` attribute is the longitude to calculate for
-      *
       * @attribute longitude
       * @type float
       */
@@ -106,7 +94,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
      /**
       * The `showpoints` attribute indicates that dots should be drawn
       * at the data points
-      *
       * @attribute showpoints
       * @type bool
       */
@@ -115,7 +102,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
       /**
        * The `timezone` attribute is the timezone to display. It would really make
        * more sense to calculate the timezone from the lat/lng, or not use it
-       *
        * @attribute longitude
        * @type float
        */
@@ -123,15 +109,20 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
       /**
        * The `width` attribute describes the width in pixels
-       *
        * @attribute width
        * @type int
        */
       width: 400,
 
       /**
+       * The `alarms` list attribute indicates the alarms in minutes of the day.
+       * @attribute alarms
+       * @type {Array}
+       */
+      alarms: [450, 600],
+
+      /**
        * The `data` is the sunrise/set data passed to the area chart
-       *
        * @property data
        * @type {Array}
        */
@@ -141,50 +132,28 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
         "dataDomain": "updateData"
       },
 
-      drawAllLines: function() {
-        for (var i=0; i<=24; i++ ) {
-          this.drawHourLine(i);
-        }
-      },
-
-      drawHourLine: function(h) {
-        var x_pos = this.width / 24 * h;
-        this.chartContainer.append("svg:line")
-          .attr("class", "centerline")
-          .attr("x1", x_pos)
-          .attr("y1", 0)
-          .attr("x2", x_pos)
-          .attr("y2", this.height)
-          .style("stroke-dasharray", ("10, 8"));
-      },
-
       /**
        * `generateSunriseData` uses suncalc to calculate the sunrise data.
        * 0 value at sunrise and sunset and 1 value at the solar noon
-       *
        * @method generateSunriseData
        * @return {Object} Returns undefined.
        */
       generateSunriseData: function() {
-
         var startDate = new timezoneJS.Date(this.dataDomain[0], this.timezone);
         var endDate = new timezoneJS.Date(this.dataDomain[1], this.timezone);
         var data = [];
-
-        while(startDate <= endDate) {
+        while (startDate <= endDate) {
           var sunObj = SunCalc.getTimes(startDate, this.latitude, this.longitude);
-
-          if(sunObj.nadir < sunObj.sunrise) {
+          if (sunObj.nadir < sunObj.sunrise) {
             data.push({xVal: new timezoneJS.Date(sunObj.nadir, this.timezone), yVal:-1});
           }
           data.push({xVal: new timezoneJS.Date(sunObj.sunrise, this.timezone), yVal:0});
           data.push({xVal: new timezoneJS.Date(sunObj.solarNoon, this.timezone), yVal:1});
           data.push({xVal: new timezoneJS.Date(sunObj.sunset, this.timezone), yVal:0});
 
-          if(sunObj.nadir > sunObj.sunset) {
+          if (sunObj.nadir > sunObj.sunset) {
             data.push({xVal: new timezoneJS.Date(sunObj.nadir, this.timezone), yVal:-1});
           }
-
           startDate.setDate(startDate.getDate() + 1);
         }
         return data;
@@ -192,7 +161,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
 
       /**
        * The `updateData` method recalculates the data for the areachart
-       *
        * @method updateData
        * @return {Object} Returns undefined.
        */
@@ -200,9 +168,6 @@ Draws a d3 area chart of sunrise/sunset at a specific lat/lng
         var format = d3.time.format("%Y-%m-%d");
         this.data = this.generateSunriseData();
       }
-
     });
-
   </script>
-
 </polymer-element>
