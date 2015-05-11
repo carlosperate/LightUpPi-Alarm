@@ -6,3 +6,21 @@
  */
 'use strict';
 
+/** Create a namespace for the application. */
+var LightUpPi = LightUpPi || {};
+
+
+LightUpPi.editCssTheme = function(cssFile) {
+  cssFile = "//bootswatch.com/cerulean/bootstrap.css";
+  $("#theme-css").attr("href", cssFile);
+  console.log("New CSS:" + cssFile);
+};
+
+
+LightUpPi.getAlarmsJson = function(cssFile) {
+  return JSON.parse(
+      jQuery.ajax({
+        url: "http://localhost/LightUpPi/getAlarm?id=all",
+        async: false
+      }).responseText).alarms;
+};

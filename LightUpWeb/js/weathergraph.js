@@ -161,7 +161,6 @@ WeatherGraph.configureChartTemplate = function () {
   // Configure the width based on parent and set resize listener
   var resizeChartWidth = function(template) {
     template.wrapperwidth = $("#chart-wrapper").width();
-    console.log(template.wrapperwidth);
   };
   window.addEventListener(
       'resize', function() { resizeChartWidth(template); }, false);

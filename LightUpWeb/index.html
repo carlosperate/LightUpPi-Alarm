@@ -2,59 +2,86 @@
 <html ng-app="lightUpPi">
 <head>
    <meta charset="utf-8" />
-   <title>LightUpPi Alarm</title>
-
    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
    <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <title>LightUpPi Alarm Web Interface</title>
 
    <!-- styles -->
    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-   <link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css" />
+   <link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css" id="theme-css"/>
    <link href="css/lightupweb.css" rel="stylesheet" type="text/css" />
 </head>
 
-<body ng-controller="MainCtrl">
+
+<body ng-controller="lightUpCtrl">
    <!-- navigation menu -->
-   <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-      <div class="container">
-         <!-- Brand and toggle get grouped for better mobile display -->
-         <div class="navbar-header">
-            <button type="button" class="navbar-toggle" ng-init="navCollapsed = true" ng-click="navCollapsed = !navCollapsed">
-               <span class="sr-only">Toggle navigation</span>
-               <span class="icon-bar"></span>
-               <span class="icon-bar"></span>
-               <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="http://lightupalarm.embeddedlog.com/">LightUpPi Alarm</a>
+   <header>
+      <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+         <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+               <button type="button" class="navbar-toggle" ng-init="navCollapsed = true" ng-click="navCollapsed = !navCollapsed">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+               </button>
+               <a class="navbar-brand" href="http://lightupalarm.embeddedlog.com/">LightUpPi Alarm Web Interface</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" ng-class="!navCollapsed && 'in'">
+               <ul class="nav navbar-nav">
+                  <li class="active"><a>Home<span class="sr-only"> (current)</span></a></li>
+                  <li ng-controller="AddAlarmModalCtrl"><a ng-click="open()">Add Alarm</a></li>
+                  <li><a>About</a></li>
+               </ul>
+               <!-- Theme selection drop down -->
+               <ul class="nav navbar-nav navbar-right">
+                  <li class="dropdown" ng-controller="ThemeDropdownCtrl as themeCtrl" dropdown is-open="status.isopen" style="display: inline;float:right">
+                     <a href dropdown-toggle ng-disabled="disabled">
+                        Select Theme <span class="caret"></span>
+                     </a>
+                     <ul class="dropdown-menu">
+                        <li ng-repeat="theme in themeCssFiles">
+                           <a href onclick="LightUpPi.editCssTheme)">{{theme.name}}</a>
+                        </li>
+                     </ul>
+                  </li>
+               </ul>
+            </div>
          </div>
-
-          <!-- Collect the nav links, forms, and other content for toggling -->
-         <div class="collapse navbar-collapse" ng-class="!navCollapsed && 'in'">
-            <ul class="nav navbar-nav">
-               <li class="active"><a>Home<span class="sr-only"> (current)</span></a></li>
-               <li><a>Add Alarm</a></li>
-               <li><a>About</a></li>
-            </ul>
-         </div>
-
-      </div>
-   </nav>
+      </nav>
+   </header>
 
 
    <!-- main content -->
    <div class="container">
-      <div style="width:100%" ng-view ng-animate="{enter: 'view-enter', leave: 'view-leave'}"></div>
-         <h1>Hello, World!</h1>
-         <h2>The date and time on the server is: {{ time }}</h2>
-      <p>Name: <input type="text" ng-model="name"></p>
-      <p>{{name}}</p>
-
       <div class="row">
-         <div class="col-lg-6">
-            Left half
+         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="panel panel-default panel-weather">
+               <div class="panel-heading">
+                  <h3 class="panel-title">Next 24 hours weather and alarms</h3>
+               </div>
+               <div class="panel-body">
+                  <iframe src="weathergraph.html" class="weather-frame" scrolling="no" seamless></iframe>
+               </div>
+            </div>
          </div>
-         <div class="col-lg-6">
-            Right half
+      </div>
+      <div class="row" ng-controller="AlarmPanelController as panels">
+         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-repeat="alarm in panels.alarms">
+            <div class="panel" ng-class="{'panel-success': alarm.enabled, 'panel-danger': !alarm.enabled}">
+               <div class="panel-heading">
+                  <h3 class="panel-title" style="display: inline">Alarm {{alarm.id}}</h3>
+                  <button type="button" class="btn btn-xs" style="display: inline;float:right" ng-class="{'btn-success': alarm.enabled, 'btn-danger': !alarm.enabled}">{{panels.enabledButtonText(alarm.enabled)}}</button>
+               </div>
+               <div class="panel-body">
+                  <strong>Alarm time:</strong> {{alarm.hour|leadingzero}}:{{alarm.minute|leadingzero}} <br />
+                  <strong>Repeat:</strong> {{panels.formatedRepeat(alarm)}}<br />
+                  <strong>Label:</strong> {{alarm.label}} <br />
+                  <span ng-show="panels.showTimestamp"><strong>Timestamp:</strong> {{alarm.timestamp | date:'dd/MM/yy @ h:mma'}}</span>
+               </div>
+            </div>
          </div>
       </div>
    </div>
@@ -63,12 +90,17 @@
    <!-- footer -->
    <footer>
       <div class="container">
-         <div class="copyright"><a href="http://www.embeddedlog.com/" target="_blank">Copyright © 2015 carlosperate</a></div>
+         <div class="copyright">Copyright © 2015 <a href="https://github.com/carlosperate" target="_blank">carlosperate</a> &middot; <a href="http://www.embeddedlog.com/" target="_blank">embeddedlog.com</a></div>
       </div>
    </footer>
 
 
+   <!-- Add alarm modal code -->
+   <div ng-include="addalarm.html"></div>
+
+
    <!-- add javascripts -->
+   <script src="js/jquery/jquery.min.js"></script>
    <script src="js/angular/angular.min.js"></script>
    <script src="js/angular/ui-bootstrap-tpls-0.13.0.min.js"></script>
    <script src="js/lightuppi.js"></script>

@@ -30,13 +30,16 @@
 }
 .weather-wrapper {
   background-color: LightSteelBlue;
-  height: 85px;
+  min-height: 85px;
+  max-height-height: 85px;
+  vertical-align: top;
   padding: 0px;
   width: 12.5%;
   color: DimGray;
   text-align: center;
   font-weight: bold;
   display: inline-block;
+  overflow: hidden;
 }
 .weather-icon {
   padding-top: 8px;

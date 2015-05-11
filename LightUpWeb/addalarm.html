@@ -1,0 +1,29 @@
+<div class="modal-header">
+   <h3 class="modal-title">Add Alarm</h3>
+</div>
+
+<div class="modal-body">
+   <div>
+      <timepicker ng-model="mytime" ng-change="changed()" hour-step="hstep" minute-step="mstep" show-meridian="ismeridian"></timepicker>
+      <pre class="alert alert-info">Alarm set up for: {{mytime | date:'shortTime' }}</pre>
+      <button class="btn btn-info" ng-click="toggleMeridianMode()" style="margin-bottom: 16px">12H / 24H</button>
+   </div>
+   <div>
+      <input type="checkbox" aria-label="..."> Mon &nbsp;&nbsp;
+      <input type="checkbox" aria-label="..."> Tue &nbsp;&nbsp;
+      <input type="checkbox" aria-label="..."> Wed &nbsp;&nbsp;
+      <input type="checkbox" aria-label="..."> Thu &nbsp;&nbsp;
+      <input type="checkbox" aria-label="..."> Fri &nbsp;&nbsp;
+      <input type="checkbox" aria-label="..."> Sat &nbsp;&nbsp;
+      <input type="checkbox" aria-label="..."> Sun &nbsp;&nbsp;
+   </div>
+   <div class="input-group">
+      <span class="input-group-addon" id="basic-addon1">Label:</span>
+      <input type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
+   </div>
+</div>
+
+<div class="modal-footer">
+   <button class="btn btn-primary" ng-click="ok()">OK</button>
+   <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>
