@@ -6,10 +6,9 @@
  *
  * Requires jQuery to be already loaded on the page.
  *
- * TODO: For now only the updateWeatherData() function uses jQuery, done because
- *       the needed timezone library alredy requires it, so no need to reinvent
- *       the wheel, but both instances only use it for the Ajax calls, so this
- *       dependency could be removed.
+ * TODO: For now only the updateWeatherData() and configureChartTemplate()
+ *       function uses jQuery, done because the needed timezone library already
+ *       requires it, so no need to reinvent the wheel, could be removed.
  */
 'use strict';
 
@@ -19,12 +18,19 @@ var WeatherGraph = WeatherGraph || {};
 /** Add Skyicons instance to application. */
 WeatherGraph.skycons = null;
 
+/** Local globals to set weather city */
+WeatherGraph.OpenWeatherCityId = 2633691;
+WeatherGraph.CityLatitude = 52.5833;
+WeatherGraph.CityLongitude = 2.1333;
+
 /** Initialize the WeatherGraph on page load. */
-window.addEventListener('load', function() {
+window.addEventListener("load", function load(event) {
+  window.removeEventListener("load", load, false);
   WeatherGraph.skycons = new Skycons({"color": "DimGray"});
   WeatherGraph.addSkycons();
+  WeatherGraph.configureChartTemplate();
   WeatherGraph.updateWeatherData();
-});
+}, false);
 
 /**
  * Adds the Skycons canvas into the DOM. Something should be loaded on the page
@@ -39,12 +45,12 @@ WeatherGraph.addSkycons = function() {
 
 /**
  * Request the weather forecast with 3 hour updates from OpenWeatherMap for
- * Wolverhampton.
+ * the globally selected city
  */
 WeatherGraph.updateWeatherData = function() {
-  var city = 2633691;  // Wolverhampton
-  var weatherJsonUrl = "http://api.openweathermap.org/data/2.5/forecast" + 
-                       "?id=" + city + "&units=metric";
+  var weatherJsonUrl = "http://api.openweathermap.org/data/2.5/forecast" +
+                       "?id=" + WeatherGraph.OpenWeatherCityId +
+                       "&units=metric";
 
   $.get(weatherJsonUrl, WeatherGraph.processWeather).error(function() {
     alert("Something went wrong fetching the weather data.");
@@ -138,4 +144,41 @@ WeatherGraph.parseWeatherJson = function (jsonReturned) {
     return;
   }
   return jsonObject;
+};
+
+/** 
+ * Configures the chart template with the current data.
+ */
+WeatherGraph.configureChartTemplate = function () {
+  var template = document.getElementById("chart-container");
+
+  // Configure timezone
+  timezoneJS.timezone.zoneFileBasePath = "js/bc-sun-chart/tz";
+  timezoneJS.timezone.loadingScheme = timezoneJS.timezone.loadingSchemes.PRELOAD_ALL;
+  timezoneJS.timezone.init({async: false});
+  template.timezone = "GB";
+
+  // Configure the width based on parent and set resize listener
+  var resizeChartWidth = function(template) {
+    template.wrapperwidth = $("#chart-wrapper").width();
+    console.log(template.wrapperwidth);
+  };
+  window.addEventListener(
+      'resize', function() { resizeChartWidth(template); }, false);
+  resizeChartWidth(template);
+
+  // Configure the rest of the chart values
+  template.debug = false;
+  template.showpoints = true;
+  template.centerline = false;
+  template.latitude = WeatherGraph.CityLatitude;
+  template.longitude = WeatherGraph.CityLongitude;
+  template.alarms = [450, 600, 1320] // 7:30, 10:00, 22:00
+
+  // Select the domain calculated and shown to be 24h from this moment
+  var now = new Date();
+  var tomorrow = new Date().setTime(now.getTime() + (24*60*60*1000));
+  template.domain = [new timezoneJS.Date(now, template.timezone),
+                     new timezoneJS.Date(tomorrow, template.timezone)]
+  template.dataDomain = template.domain;
 };
