@@ -4,31 +4,32 @@
  *
  * @fileoverview LightUpPi app AngularJS controller.
  */
-'use strict';
+"use strict";
 
-/** Create a namespace for the application and Angular app. */
+/** Create/reuse the namespace for the application and Angular app. */
 var LightUpPi = LightUpPi || {};
-LightUpPi.app = angular.module('lightUpPi', ['ui.bootstrap']);
+LightUpPi.app = angular.module("lightUpPi", ["ui.bootstrap"]);
 
 /**
  * Main controller for the LightUpPi Angular App.
  */
-LightUpPi.app.controller('lightUpCtrl', function($scope) {
+LightUpPi.app.controller("lightUpCtrl", ["$scope", function($scope) {
   // Nothing yet in the main controller.
-});
+}]);
 
 /**
  * This controls the Modal launched to add a new alarm. It only controls the
  * modal execution, code within the modal is connected in 'AddAlarmCtrl'.
  */
-LightUpPi.app.controller('AddAlarmModalCtrl', function ($scope, $modal, $log) {
+LightUpPi.app.controller("AddAlarmModalCtrl", ["$scope", "$modal", "$log",
+    function ($scope, $modal, $log) {
   $scope.animationsEnabled = true;
 
   $scope.open = function (size) {
     var modalInstance = $modal.open({
       animation: $scope.animationsEnabled,
-      templateUrl: 'addalarm.html',
-      controller: 'AddAlarmCtrl',
+      templateUrl: "addalarm.html",
+      controller: "AddAlarmCtrl",
       size: size,
       resolve: {
         items: function () {
@@ -42,24 +43,25 @@ LightUpPi.app.controller('AddAlarmModalCtrl', function ($scope, $modal, $log) {
         $scope.selected = selectedItem;
       },
       function () {
-        $log.info('Modal dismissed at: ' + new Date());
+        $log.info("Modal dismissed at: " + new Date());
       }
     );
   };
 
-});
+}]);
 
 /**
  * Mote that $modalInstance represents a modal window (instance) dependency. It
  * is not the same as the $modal service used in AddAlarmModalCtrl.
  */
-LightUpPi.app.controller('AddAlarmCtrl', function ($scope, $modalInstance, $log) {
+LightUpPi.app.controller("AddAlarmCtrl", ["$scope", "$modalInstance", "$log",
+    function ($scope, $modalInstance, $log) {
   $scope.ok = function () {
     $modalInstance.close();
   };
 
   $scope.cancel = function () {
-    $modalInstance.dismiss('cancel');
+    $modalInstance.dismiss("cancel");
   };
 
   $scope.mytime = new Date();
@@ -72,36 +74,33 @@ LightUpPi.app.controller('AddAlarmCtrl', function ($scope, $modalInstance, $log)
   };
 
   $scope.changed = function () {
-    $log.log('Time changed to: ' + $scope.mytime);
+    $log.log("Time changed to: " + $scope.mytime);
   };
-});
+}]);
 
 /**
  * Controller for the navigation bar drop down which allows dynamic theme
  * selection.
  */
-LightUpPi.app.controller('ThemeDropdownCtrl', function ($scope, $log) {
-  $scope.themeCssFiles = [
-    { name: "default",  link: "//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css" },
-    { name: "cerulean", link: "//bootswatch.com/cerulean/bootstrap.css" },
-    { name: "cosmo",    link: "//bootswatch.com/cosmo/bootstrap.css" },
-    { name: "cyborg",   link: "//bootswatch.com/cyborg/bootstrap.css" },
-    { name: "flatly",   link: "//bootswatch.com/flatly/bootstrap.css" },
-    { name: "journal",  link: "//bootswatch.com/journal/bootstrap.css" },
-    { name: "readable", link: "//bootswatch.com/readable/bootstrap.css" },
-    { name: "simplex",  link: "//bootswatch.com/simplex/bootstrap.css" },
-    { name: "slate",    link: "//bootswatch.com/slate/bootstrap.css" },
-    { name: "spacelab", link: "//bootswatch.com/bootswatch/bootstrap.css" },
-    { name: "united",   link: "//bootswatch.com/united/bootstrap.css" },
-  ];
+LightUpPi.app.controller("ThemeDropdownCtrl", ["$scope", "$log", "$window", "$location",
+    function ($scope, $log, $window, $location) {
+  this.themeCssFiles = LightUpPi.themeList;
+
+  this.editCssTheme = function(themeName, cssFile) {
+    LightUpPi.editCssTheme(cssFile);
+    // Edit the address bar location without reloading the page
+    $window.history.pushState("", "", "?theme=" + themeName);
+    $location.path("?theme=" + themeName);
+    $location.replace();
+    console.log($location.path());
+  };
 
   $scope.status = {
     isopen: false
   };
 
   $scope.toggled = function(open) {
-    $log.log('Dropdown is now: ', open);
-    LightUpPi.editCssTheme(this.css);
+    $log.log("Dropdown is now: ", open);
   };
 
   $scope.toggleDropdown = function($event) {
@@ -109,15 +108,20 @@ LightUpPi.app.controller('ThemeDropdownCtrl', function ($scope, $log) {
     $event.stopPropagation();
     $scope.status.isopen = !$scope.status.isopen;
   };
-});
-
+}]);
 
 /**
- *
+ * Controller for the Alarm Panels. It collects the JSON data from the server
+ * and creates a panel per Alarm with all its information.
  */
-LightUpPi.app.controller('AlarmPanelController', function () {
+LightUpPi.app.controller("AlarmPanelController", ["$http", function ($http) {
+  var context = this; 
   this.showTimestamp = true;
-  this.alarms = LightUpPi.getAlarmsJson();
+  this.alarms = [];
+  $http.get("http://localhost/LightUpPi/getAlarm?id=all")
+       .success(function(data) {
+         context.alarms = data.alarms;
+       });
 
   // Returns a string to indicate if the alarm is enabled or disabled
   this.enabledButtonText = function(enabled) {
@@ -141,16 +145,16 @@ LightUpPi.app.controller('AlarmPanelController', function () {
     if (alarm.sunday)    { strArray.push("Sun"); } else { strArray.push(d); }
     return strArray.join(" ");
   };
-});
+}]);
 
 /**
  * Create a custom filter to always display a leading zero for < 10 digits.
  * Useful for time display.
  */
-LightUpPi.app.filter('leadingzero', function() {
+LightUpPi.app.filter("leadingzero", function() {
   return function(input) {
     if (input < 10) { 
-      input = '0' + input;
+      input = "0" + input;
     }
     return input;
   };

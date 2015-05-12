@@ -13,7 +13,7 @@ styling is not applied correctly. */
 /* The fixed navbar will overlay your other content, unless you add padding to
 the top of the <body>. Try out your own values or use our snippet below.*/
 body {
-  padding-top: 70px;
+  padding-top: 80px;
 }
 
 /* Iframe that shows the weather chart*/
@@ -26,6 +26,11 @@ body {
 }
 .panel-weather {
   border-radius: 0px;
+}
+
+.panel-weather .panel-heading {
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
 }
 .panel-weather .panel-body {
   padding: 0;

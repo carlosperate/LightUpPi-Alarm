@@ -7,9 +7,14 @@
    <title>LightUpPi Alarm Web Interface</title>
 
    <!-- styles -->
+   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-   <link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css" id="theme-css"/>
+   <link href="css/bootstrap.default.min.css" rel="stylesheet" type="text/css" id="theme-css"/>
    <link href="css/lightupweb.css" rel="stylesheet" type="text/css" />
+
+   <!-- Angular js -->
+   <script src="js/angular/angular.min.js"></script>
+   <script src="js/angular/ui-bootstrap-tpls-0.13.0.min.js"></script>
 </head>
 
 
@@ -42,8 +47,8 @@
                         Select Theme <span class="caret"></span>
                      </a>
                      <ul class="dropdown-menu">
-                        <li ng-repeat="theme in themeCssFiles">
-                           <a href onclick="LightUpPi.editCssTheme)">{{theme.name}}</a>
+                        <li ng-repeat="theme in themeCtrl.themeCssFiles">
+                           <a ng-click="themeCtrl.editCssTheme(theme.name, theme.link)">{{theme.name}}</a>
                         </li>
                      </ul>
                   </li>
@@ -58,7 +63,7 @@
    <div class="container">
       <div class="row">
          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <div class="panel panel-default panel-weather">
+            <div class="panel panel-primary panel-weather">
                <div class="panel-heading">
                   <h3 class="panel-title">Next 24 hours weather and alarms</h3>
                </div>
@@ -68,7 +73,7 @@
             </div>
          </div>
       </div>
-      <div class="row" ng-controller="AlarmPanelController as panels">
+      <div class="row" ng-controller="AlarmPanelController as panels" ng-cloak>
          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-repeat="alarm in panels.alarms">
             <div class="panel" ng-class="{'panel-success': alarm.enabled, 'panel-danger': !alarm.enabled}">
                <div class="panel-heading">
@@ -99,10 +104,7 @@
    <div ng-include="addalarm.html"></div>
 
 
-   <!-- add javascripts -->
-   <script src="js/jquery/jquery.min.js"></script>
-   <script src="js/angular/angular.min.js"></script>
-   <script src="js/angular/ui-bootstrap-tpls-0.13.0.min.js"></script>
+   <!-- Add app javascript -->
    <script src="js/lightuppi.js"></script>
    <script src="js/lightuppi_controller.js"></script>
 </body>
