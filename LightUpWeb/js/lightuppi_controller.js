@@ -89,10 +89,7 @@ LightUpPi.app.controller("ThemeDropdownCtrl", ["$scope", "$log", "$window", "$lo
   this.editCssTheme = function(themeName, cssFile) {
     LightUpPi.editCssTheme(cssFile);
     // Edit the address bar location without reloading the page
-    $window.history.pushState("", "", "?theme=" + themeName);
-    $location.path("?theme=" + themeName);
-    $location.replace();
-    console.log($location.path());
+    $location.url("/?theme=" + themeName).replace();
   };
 
   $scope.status = {

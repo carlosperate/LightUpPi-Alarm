@@ -70,13 +70,15 @@ LightUpPi.loadUrlTheme = function() {
 /**
  * Gets the URL query string, divides it into parameters and returns the value
  * of the parameter defined in the argument
+ * Dude to the way the angular application deals with parameters it assumes the
+ * following format:
+ *   http://address/#/?param=value%param=value
  * @param {string} variable Name of the parameter which value is to be returned
  * @return {string} Value of the parameter indicated in the argument.
  *                  Null if parameter not found. 
  */
 LightUpPi.getUrlParam = function(param) {
-  var queryString = window.location.search.substring(1);
-  var parameters = queryString.split("&");
+  var parameters = window.location.hash.split("?")[1].split("&")
   for (var i = 0; i < parameters.length; i++) {
     var paramValue = parameters[i].split("=");
     if (paramValue[0] == param) {
