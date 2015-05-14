@@ -12,9 +12,31 @@ LightUpPi.app = angular.module("lightUpPi", ["ui.bootstrap"]);
 
 /**
  * Main controller for the LightUpPi Angular App.
+ * It sets short polling to the server to maintain the displayed alarm data 
+ * refreshed.
  */
-LightUpPi.app.controller("lightUpCtrl", ["$scope", function($scope) {
-  // Nothing yet in the main controller.
+LightUpPi.app.controller("lightUpCtrl", ["$scope", "$interval", "$http",
+    function($scope, $interval, $http) {
+  $scope.serverError = false;
+  $scope.alarms = [];
+
+  $scope.refreshAlarmsData = function() {
+    $http.get("http://localhost/LightUpPi/getAlarm?id=all")
+         .success(function(data) {
+           if (typeof data.error == 'undefined') {
+             $scope.alarms = data.alarms;
+             $scope.serverError = false;
+           } else {
+             $scope.alarms = LightUpPi.demoAlarms;
+             $scope.serverError = true;
+           }
+         })
+         .error(function(data, status) {
+           $scope.alarms = LightUpPi.demoAlarms;
+           $scope.serverError = true;
+         });
+  };
+  var promise = $interval($scope.refreshAlarmsData, 2000);
 }]);
 
 /**
@@ -47,7 +69,6 @@ LightUpPi.app.controller("AddAlarmModalCtrl", ["$scope", "$modal", "$log",
       }
     );
   };
-
 }]);
 
 /**
@@ -82,8 +103,8 @@ LightUpPi.app.controller("AddAlarmCtrl", ["$scope", "$modalInstance", "$log",
  * Controller for the navigation bar drop down which allows dynamic theme
  * selection.
  */
-LightUpPi.app.controller("ThemeDropdownCtrl", ["$scope", "$log", "$window", "$location",
-    function ($scope, $log, $window, $location) {
+LightUpPi.app.controller("ThemeDropdownCtrl", ["$scope", "$log", "$location",
+    function ($scope, $log, $location) {
   this.themeCssFiles = LightUpPi.themeList;
 
   this.editCssTheme = function(themeName, cssFile) {
@@ -111,14 +132,10 @@ LightUpPi.app.controller("ThemeDropdownCtrl", ["$scope", "$log", "$window", "$lo
  * Controller for the Alarm Panels. It collects the JSON data from the server
  * and creates a panel per Alarm with all its information.
  */
-LightUpPi.app.controller("AlarmPanelController", ["$http", function ($http) {
-  var context = this; 
+LightUpPi.app.controller("AlarmPanelController", ["$scope", "$http",
+    function ($scope, $http) {
+  var context = this;
   this.showTimestamp = true;
-  this.alarms = [];
-  $http.get("http://localhost/LightUpPi/getAlarm?id=all")
-       .success(function(data) {
-         context.alarms = data.alarms;
-       });
 
   // Returns a string to indicate if the alarm is enabled or disabled
   this.enabledButtonText = function(enabled) {
@@ -128,6 +145,12 @@ LightUpPi.app.controller("AlarmPanelController", ["$http", function ($http) {
       return "Disabled";
     }
   };
+
+  this.enabledButtonClick = function(id, enabled) {
+    $http.get("http://localhost/LightUpPi/editAlarm?id=" + id +
+              "&enabled=" + !enabled)
+         .success(function(data) { $scope.refreshAlarmsData(); });
+  }
 
   // Formats a string to list the repeat days
   this.formatedRepeat = function(alarm) {
@@ -156,3 +179,37 @@ LightUpPi.app.filter("leadingzero", function() {
     return input;
   };
 });
+
+/** Default Alarm JSON array for demo shown on server error. */
+LightUpPi.demoAlarms = [
+  {
+    "saturday": false,
+    "monday": true,
+    "timestamp": 1431391253,
+    "tuesday": true,
+    "friday": true,
+    "id": 1,
+    "minute": 30,
+    "hour": 7,
+    "enabled": true,
+    "wednesday": true,
+    "thursday": true,
+    "label": "Fake default alarm 1",
+    "sunday": false
+  },
+  {
+    "saturday": true,
+    "monday": false,
+    "timestamp": 1431211548,
+    "tuesday": false,
+     "friday": false,
+    "id": 2,
+    "minute": 45,
+    "hour": 10,
+    "enabled": true,
+    "wednesday": false,
+    "thursday": false,
+    "label": "Fake default alarm 2",
+    "sunday": true
+  }
+];

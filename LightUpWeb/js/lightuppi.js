@@ -43,7 +43,7 @@ window.addEventListener("load", function load(event) {
  */
 LightUpPi.editCssTheme = function(cssFile) {
   document.getElementById("theme-css").setAttribute("href", cssFile);
-  console.log("New CSS: " + cssFile);
+  console.log("New CSS file: " + cssFile);
 };
 
 /**
@@ -78,7 +78,10 @@ LightUpPi.loadUrlTheme = function() {
  *                  Null if parameter not found. 
  */
 LightUpPi.getUrlParam = function(param) {
-  var parameters = window.location.hash.split("?")[1].split("&")
+  var parameters = window.location.hash.split("?")
+  if (parameters[1]) {
+    parameters = parameters[1].split("&");
+  }
   for (var i = 0; i < parameters.length; i++) {
     var paramValue = parameters[i].split("=");
     if (paramValue[0] == param) {

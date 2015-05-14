@@ -74,11 +74,17 @@
          </div>
       </div>
       <div class="row" ng-controller="AlarmPanelController as panels" ng-cloak>
-         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-repeat="alarm in panels.alarms">
+         <!-- This bootstrap alert is only shown on server error -->
+         <div class="col-xs-offset-2 col-xs-8 alert alert-warning" role="alert" style="text-align: center" ng-show="serverError">
+            There was a problem loading the alarms from the server.
+            Default alarms loaded for demonstration only.
+         </div>
+         <!-- Repeatable panel per alarm -->
+         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-repeat="alarm in alarms">
             <div class="panel" ng-class="{'panel-success': alarm.enabled, 'panel-danger': !alarm.enabled}">
                <div class="panel-heading">
                   <h3 class="panel-title" style="display: inline">Alarm {{alarm.id}}</h3>
-                  <button type="button" class="btn btn-xs" style="display: inline;float:right" ng-class="{'btn-success': alarm.enabled, 'btn-danger': !alarm.enabled}">{{panels.enabledButtonText(alarm.enabled)}}</button>
+                  <button type="button" class="btn btn-xs" style="display: inline;float:right" ng-class="{'btn-success': alarm.enabled, 'btn-danger': !alarm.enabled}" ng-click="panels.enabledButtonClick(alarm.id, alarm.enabled)">{{panels.enabledButtonText(alarm.enabled)}}</button>
                </div>
                <div class="panel-body">
                   <strong>Alarm time:</strong> {{alarm.hour|leadingzero}}:{{alarm.minute|leadingzero}} <br />
