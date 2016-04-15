@@ -9,14 +9,15 @@ This README file is still under development.
 ### Dependencies
 Currently tested on Python 2.7 and 3.4.
 
-Install [Dataset](http://dataset.readthedocs.org/en/latest/index.html): 
+Install version 0.5.4 of [Dataset](http://dataset.readthedocs.org/en/latest/index.html): 
 ```
-pip install dataset
+pip install -I dataset=0.5.4
 ```
 Or:
 ```
 git clone git://github.com/pudo/dataset.git
 cd dataset/
+git checkout 9a91f3d1139a022b8c29f7c4215f6500b9e39b75
 python setup.py install
 ```
 
