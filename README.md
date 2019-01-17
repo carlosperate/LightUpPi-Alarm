@@ -9,7 +9,7 @@ It has been modularised into the following packages:
 * __LightUpServer__: Creates an HTTP server to interface with the LightUpAlarm system using a web interface or JSON (used in the LightUpDroid Android app).
 * __LightUpWeb__: Front-end web interface for the LightUpServer. 
 
-Additionally, an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app please visit its repository: [LightUpDrop Alarm][1]
+Additionally, an Android application can be used to interface with the LightUpPi Alarm system. For more information about this app please visit its repository: [LightUpDroid Alarm][1]
 
 
 ## Installing LightUpPi Alarm
@@ -49,7 +49,7 @@ There are three different ways to run LightUpPi Alarm:
     
     Instructions about how to use the CLI can be found in the LightUpAlarm package [README][4].
     
-    <img src="http://carlosperate.github.com/LightUpPi-Alarm/images/screenshot_cli_1.png" alt="CLI interface" width="75%">
+    <img src="https://raw.githubusercontent.com/carlosperate/LightUpPi-Alarm/gh-pages/images/screenshot_cli_1.png" alt="CLI interface" width="75%">
 
 2. Using the web interface only, designed to run on a headless system, by launching the program with the `-s` flag:
 
@@ -59,7 +59,7 @@ There are three different ways to run LightUpPi Alarm:
     
     And then pointing your browser to the following adddress: ` http://<raspberrypi_ip>/LightUpPi `.
 
-    <img src="http://carlosperate.github.com/LightUpPi-Alarm/images/screenshot_web_1.png" alt="Web Interface" width="75%">
+    <img src="https://raw.githubusercontent.com/carlosperate/LightUpPi-Alarm/gh-pages/images/screenshot_web_1.png" alt="Web Interface" width="75%">
 
      You can also use the [LightUpDroid][1] app if the server is running.
 
