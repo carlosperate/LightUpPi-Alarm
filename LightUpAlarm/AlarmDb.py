@@ -73,10 +73,12 @@ class AlarmDb(object):
                       'constructor is not a valid String !')
             self.db_file = 'sqlite:///alarmdatabase.db'
 
+        self.db = dataset.connect(self.db_file)
+
         # Check if the settings table is empty
         settings_table = self.__connect_settings()
-        rows = settings_table.all()
-        if rows.count == 0:
+        rows = self.db['alarms'].all()
+        if len(list(rows)) == 0:
             settings_table.insert(dict(snooze_time=3, offset_alert_time=-15))
 
     #

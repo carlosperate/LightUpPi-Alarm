@@ -1,6 +1,6 @@
 # LightUpPi Alarm
 
-This is a Clock Alarm System for the Raspberry PiIt has sunrise lighting, coffee machine control, physical snooze button, and an Android companion app.
+This is a Clock Alarm System for the Raspberry Pi. It has sunrise lighting, coffee machine control, physical snooze button, and an Android companion app.
 
 It has been modularised into the following packages:
 
@@ -14,7 +14,7 @@ Additionally, an Android application can be used to interface with the LightUpPi
 
 ## Installing LightUpPi Alarm
 
-This application has been been develop to run a Raspberry Pi with Python 2.7. The project currently aims to maintain compatibility with Python 3. 
+This application has been developed to run a Raspberry Pi with Python 2.7. The project currently aims to maintain compatibility with Python 3. 
 
 Install the dependencies described below. Then download this repository, by clicking [here][2] or running the following in the command line:
 

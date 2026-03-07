@@ -85,3 +85,5 @@ alarmdatabase.db
 
 # Unit test database
 AlarmDb_test_db.db
+*.db-shm
+*.db-wal
