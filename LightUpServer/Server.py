@@ -361,4 +361,4 @@ def run(alarm_mgr_arg, silent=False, callback_arg=None):
     flask_server.static_folder = static_dir
 
     # Run flask
-    flask_server.run(host='0.0.0.0', port=80, debug=False)
+    flask_server.run(host='0.0.0.0', port=8080, debug=False)

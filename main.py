@@ -13,7 +13,12 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import getopt
-import thread
+
+try:
+    import _thread as thread
+except ImportError:
+    import thread
+
 import platform
 import threading
 from time import sleep
@@ -164,11 +169,11 @@ def main(argv):
                     silent=True,
                     callback_arg=cli_thread.callback_event)
             else:
-                while cli_thread.isAlive():
+                while cli_thread.is_alive():
                     sleep(0.2)
         except (KeyboardInterrupt, SystemExit):
             # Allow the clean exit from the CLI interface to execute
-            if cli_thread.isAlive():
+            if cli_thread.is_alive():
                 sleep(1)
 
 
